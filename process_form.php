@@ -114,11 +114,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email_body .= "<p><strong>Uploaded File:</strong> <a href='http://rotmanav.online/uploads/" . $file_name . "'>View File</a></p>";
     $email_body .= "</body></html>";
 
-    $to = 'cameron.ashley@utoronto.ca';
+    $to = $email_address;
     $subject = "New Event Request: " . $event_name;
     $headers = "From: AV Booking Form<request@rotmanav.online>\r\n";
     $headers .= "Reply-To: " . $email_address . "\r\n";
     $headers .= "To: " . $to . "\r\n";
+    $headers .= "Cc: avrequests@rotman.utoronto.ca\r\n";
     $headers .= "MIME-Version: 1.0\r\n";
     $headers .= "Content-Type: text/html; charset=utf-8\r\n";
 
