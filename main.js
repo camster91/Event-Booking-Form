@@ -1,6 +1,5 @@
 $(document).ready(function() {
     $( "#event-date" ).datepicker();
-    });
 });
 
 document.addEventListener("DOMContentLoaded", function() { 
