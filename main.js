@@ -1,7 +1,5 @@
 $(document).ready(function() {
     $( "#event-date" ).datepicker();
-    $('#registration-time, #event-start-time, #presentation-end-time, #shutdown').timepicker({
-        'scrollDefault': '07:00'
     });
 });
 
