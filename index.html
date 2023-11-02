@@ -6,7 +6,6 @@
         <title>Event Hall AV Package Form</title>
         <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.css">
         <link rel="stylesheet" href="css.css">
     </head>
 <body>
@@ -39,20 +38,28 @@
                     <div class="custom-grid-container">
                         <div class="form-group">
                             <label for="registration-time">Registration Time:</label>
-                            <input type="text" class="form-control required" id="registration-time" name="registration-time" required>
+                            <input type="time" class="form-control required" id="registration-time" name="registration-time" required>
                         </div>
                         <div class="form-group">
                             <label for="event-start-time">Event Start Time:</label>
-                            <input type="text" class="form-control required" id="event-start-time" name="event-start-time" required>
+                            <input type="time" class="form-control required" id="event-start-time" name="event-start-time" required>
                         </div>
                         <div class="form-group">
                             <label for="presentation-end-time">Presentation End Time:</label>
-                            <input type="text" class="form-control required" id="presentation-end-time" name="presentation-end-time" required>
+                            <input type="time" class="form-control required" id="presentation-end-time" name="presentation-end-time" required>
                         </div>
                         <div class="form-group">
                             <label for="shutdown">Shutdown:</label>
-                            <input type="text" class="form-control required" id="shutdown" name="shutdown" required>
+                            <input type="time" class="form-control required" id="shutdown" name="shutdown" required>
                         </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="other-notes">Other Notes:</label>
+                        <textarea class="form-control" id="other-notes" name="other-notes" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="media-upload">Upload Image/Video:</label>
+                        <input type="file" id="media-upload" name="media-upload" accept="image/*,video/*">
                     </div>
                     <br><br>
                     <h2 class="text-center mb-3">Budget Numbers</h2>
@@ -127,44 +134,37 @@
                             </div>
                         </div>
                     </div>
+                    <p class="mt-4">
+                        <strong>*Media-wall images:</strong> to be submitted one week in advance in JPEG or PNG format (wide-screen).
+                        The wall can accommodate multiple images in a loop. If you have more than 5 images, please save as a video using powerpoint.
+                    </p>
+                    <p>
+                        <strong>** IMAG:</strong> Image magnification refers to video projection for attendees to see the presenters up close on the screen.
+                    </p>
+                    <br>
                     <input type="submit" value="Submit" style="font-size: 20px; padding: 15px 30px;">
                 </form>
             </div>
         </div>
         <div class="col-md-6">
             <br><br>
-                        <h4>Event Hall Includes:</h4>
-                    ✅ 1 Technician (available one hour before the event start time).<br>
-                    ✅ Lectern with built-in PC (Next to stage unless specified on the floor plan).<br>
-                    ✅ HDMI and VGA cable for laptop connection.<br>
-                    ✅ Background Music requires Lectern PC to be in the room.<br>
-                    ✅ Presentation clicker with laser.<br>
-                    ✅ Confidence monitor.<br>
-                    ✅ Either Clear Acrylic Podium or Lectern(PC) with goose-neck microphone.<br>
-                    ✅ Up to 6 lapel microphones.<br>
-                    ✅ Up to 30 handheld microphones for panels and Q&A.<br>
-                    ✅ Image displayed on the Media wall starting one hour before the event start time*.</p>
-                    
-                    <h4>Fleck Atrium Includes:</h4>
-                    ✅ 1 Technician (available one hour before the event start time).<br>
-                    ✅ Acrylic Podium with a mic.<br>
-                    ✅ HDMI for laptop connection.<br>
-                    ✅ Presentation clicker with laser.<br>
-                    ✅ Up to 10 mics (any combination of either lapel or handheld microphones which totals 10 microphones).</p>                    
-                    
-                    <p class="mt-4">
-                        <strong>*Media-wall images:</strong> to be submitted one week in advance in JPEG or PNG format (wide-screen).
-                        The Media-wall does not technically show PowerPoint. However, you can use PowerPoint to
-                        design the slides, then “save as” an image. The wall can accommodate multiple images in a loop. If
-                        you have more than 5, please save as a video. If you’re using a PowerPoint loop with animations,
-                        use the “save as” function in PowerPoint to convert the loop to a video file.
-                    </p>
-                    <p>
-                        <strong>** IMAG:</strong> "image magnification" used in the audiovisual production industry. It refers to
-                        large-scale theatrical or concert video projection to enable audience members seated at
-                        great distances from the stage to see details of the performer's body language and facial
-                        expressions that could not be seen with the unaided eye.
-                    </p>
+                <h4>Event Hall Includes:</h4>
+                🧑‍🔧 1 Technician (available one hour before the event start time).<br>
+                🎤 Lectern with built-in PC (Next to stage unless specified on the floor plan).<br>
+                🔌 HDMI and VGA cable for laptop connection.<br>
+                🎵 Background Music requires Lectern PC to be in the room.<br>
+                🖱️ Presentation clicker with laser.<br>
+                🖥️ Confidence monitor.<br>
+                🎤 Up to 6 lapel microphones.<br>
+                🎤 Up to 30 handheld microphones for panels and Q&A.<br>
+                🖼️ Image displayed on the Media wall starting one hour before the event start time*.</p>
+                
+                <h4>Fleck Atrium Includes:</h4>
+                🧑‍🔧 1 Technician (available one hour before the event start time).<br>
+                🎙️ Acrylic Podium with a mic.<br>
+                🔌 HDMI for laptop connection.<br>
+                🖱️ Presentation clicker with laser.<br>
+                🎤 Up to 10 mics (any combination of either lapel or handheld microphones which totals 10 microphones).</p>
         </div>
     </div>
     </div>

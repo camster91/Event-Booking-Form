@@ -5,6 +5,8 @@ ini_set('display_errors', 1);
 
 $logFile = 'email_log.txt';
 
+
+
 function logEntry($message) {
     global $logFile;
     file_put_contents($logFile, date('Y-m-d H:i:s') . " - " . $message . "\n", FILE_APPEND);
@@ -85,6 +87,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $cfc_number = sanitize_input($_POST['cfc-number'] ?? '');
     $event_space = sanitize_input($_POST['event-space'] ?? '');
     $recording_option = sanitize_input($_POST['recording-option'] ?? '');
+    $other_notes = $_POST['other-notes'];
+
+    if(isset($_FILES['media-upload'])){
+        $file_name = $_FILES['media-upload']['name'];
+        $file_tmp =$_FILES['media-upload']['tmp_name'];
+        move_uploaded_file($file_tmp,"uploads/".$file_name);
+    }
 
     // Email body content
     $email_body = "<html><body style='font-family: Arial, sans-serif;'>";
@@ -101,6 +110,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email_body .= "<p><strong>Shutdown:</strong> " . $shutdown . "</p>";
     $email_body .= "<p><strong>CC#:</strong> " . $cc_number . "</p>";
     $email_body .= "<p><strong>CFC#:</strong> " . $cfc_number . "</p>";
+    $email_body .= "<p><strong>Other Notes:</strong> " . $other_notes . "</p>";
+    $email_body .= "<p><strong>Uploaded File:</strong> <a href='http://rotmanav.online/uploads/" . $file_name . "'>View File</a></p>";
     $email_body .= "</body></html>";
 
     $to = 'cameron.ashley@utoronto.ca';
@@ -129,5 +140,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 } else {
     echo "Form not submitted";
 }
+
 
 ?>
