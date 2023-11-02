@@ -85,6 +85,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $cfc_number = sanitize_input($_POST['cfc-number'] ?? '');
     $event_space = sanitize_input($_POST['event-space'] ?? '');
     $recording_option = sanitize_input($_POST['recording-option'] ?? '');
+    $other_notes = $_POST['other-notes'];
 
     // Email body content
     $email_body = "<html><body style='font-family: Arial, sans-serif;'>";
@@ -101,6 +102,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email_body .= "<p><strong>Shutdown:</strong> " . $shutdown . "</p>";
     $email_body .= "<p><strong>CC#:</strong> " . $cc_number . "</p>";
     $email_body .= "<p><strong>CFC#:</strong> " . $cfc_number . "</p>";
+    $email_body .= "<p><strong>Other Notes:</strong> " . $other_notes . "</p>";
     $email_body .= "</body></html>";
 
     $to = 'cameron.ashley@utoronto.ca';
