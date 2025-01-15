@@ -55,3 +55,13 @@ function validateRequiredFields() {
 
     return isValid;
 }
+$(function () {
+    $("#event-date").datepicker({
+        dateFormat: "mm/dd/yy", // Format for the date
+        changeMonth: true,     // Allow month dropdown
+        changeYear: true,      // Allow year dropdown
+        showAnim: "slideDown", // Animation effect
+        minDate: 0,            // Disable past dates
+        maxDate: "+1Y",        // Allow selection up to 1 year in the future
+    });
+});

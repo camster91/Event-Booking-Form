@@ -116,7 +116,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $to = 'cameron.ashley@utoronto.ca';
     $subject = "New Event Request: " . $event_name;
-    $headers = "From: AV Booking Form<request@rotmanav.online>\r\n";
+    $headers = "From: AV Booking Form<requests@rotmanav.ca>\r\n";
     $headers .= "Reply-To: " . $email_address . "\r\n";
     $headers .= "To: " . $to . "\r\n";
     $headers .= "MIME-Version: 1.0\r\n";
@@ -125,8 +125,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $smtpDetails = [
         'host' => 'smtp.titan.email',
         'port' => 465,
-        'username' => 'request@rotmanav.online',
-        'password' => 'xXSZ$qC(&nn7qR2' // Please note: Password should not be hardcoded like this for security reasons.
+        'username' => 'requests@rotmanav.ca',
+        'password' => 'willow123!' // Please note: Password should not be hardcoded like this for security reasons.
     ];
 
     if (smtp_mail($to, $subject, $email_body, $headers, $smtpDetails)) {

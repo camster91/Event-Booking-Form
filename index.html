@@ -1,178 +1,162 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Event Hall AV Package Form</title>
-        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-        <link rel="stylesheet" href="css.css">
-    </head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Hall AV Package Form</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="css.css">
+</head>
 <body>
-    <br><br>
-    <h1 class="text-center">Rotman AV Event Booking</h1>
-    <br><br>
-    <div class="custom-container" style="max-width: 1440px; margin: auto;">
-        <div class="row">
+    <div class="container">
+        <h1 class="text-center my-5">Rotman AV Event Booking</h1>
+
+        <div class="row justify-content-center">
             <div class="col-md-6">
                 <form method="post" action="process_form.php">
-                    <br>
-                    <!-- Your form content here -->
-                    <div class="form-group">
-                        <label for="person-of-contact">Person Of Contact:</label>
-                        <input type="text" class="form-control required" id="person-of-contact" name="person-of-contact" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="email-address">Email Address:</label>
-                        <input type="email" class="form-control required" id="email-address" name="email-address" required>
+                    <div class="form-group text-center">
+                        <h2>Event Space</h2>
+                        <div class="btn-group-toggle" data-toggle="buttons">
+                            <label class="btn btn-outline-primary">
+                                <input type="radio" name="event-space" value="full" autocomplete="off"> Event Hall Full
+                            </label>
+                            <label class="btn btn-outline-primary">
+                                <input type="radio" name="event-space" value="one-third" autocomplete="off"> Event Hall 1/3
+                            </label>
+                            <label class="btn btn-outline-primary">
+                                <input type="radio" name="event-space" value="two-thirds" autocomplete="off"> Event Hall 2/3
+                            </label>
+                            <label class="btn btn-outline-primary">
+                                <input type="radio" name="event-space" value="fleck-atrium" autocomplete="off"> Fleck Atrium
+                            </label>
+                        </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="event-date">Event Date:</label>
-                        <input type="text" class="form-control required left-align" id="event-date" name="event-date" required>
+                        <label for="person-of-contact">Person Of Contact:</label>
+                        <input type="text" class="form-control" id="person-of-contact" name="person-of-contact" required>
                     </div>
+
+                    <div class="form-group">
+                        <label for="email-address">Email Address:</label>
+                        <input type="email" class="form-control" id="email-address" name="email-address" required>
+                    </div>
+
+<div class="form-group">
+    <label for="event-date">Event Date:</label>
+    <input type="text" class="form-control" id="event-date" name="event-date" required placeholder="Select a date">
+</div>
+
                     <div class="form-group">
                         <label for="event-name">Event Name:</label>
-                        <input type="text" class="form-control required" id="event-name" name="event-name" required>
+                        <input type="text" class="form-control" id="event-name" name="event-name" required>
                     </div>
-                    <div class="custom-grid-container">
-                        <div class="form-group">
+
+                    <div class="row">
+                        <div class="col-md-6 form-group">
                             <label for="registration-time">Registration Time:</label>
-                            <input type="time" class="form-control required" id="registration-time" name="registration-time" required>
+                            <input type="time" class="form-control" id="registration-time" name="registration-time" required>
                         </div>
-                        <div class="form-group">
+                        <div class="col-md-6 form-group">
                             <label for="event-start-time">Event Start Time:</label>
-                            <input type="time" class="form-control required" id="event-start-time" name="event-start-time" required>
+                            <input type="time" class="form-control" id="event-start-time" name="event-start-time" required>
                         </div>
-                        <div class="form-group">
+                        <div class="col-md-6 form-group">
                             <label for="presentation-end-time">Presentation End Time:</label>
-                            <input type="time" class="form-control required" id="presentation-end-time" name="presentation-end-time" required>
+                            <input type="time" class="form-control" id="presentation-end-time" name="presentation-end-time" required>
                         </div>
-                        <div class="form-group">
+                        <div class="col-md-6 form-group">
                             <label for="shutdown">Shutdown:</label>
-                            <input type="time" class="form-control required" id="shutdown" name="shutdown" required>
+                            <input type="time" class="form-control" id="shutdown" name="shutdown" required>
                         </div>
                     </div>
+
                     <div class="form-group">
                         <label for="other-notes">Other Notes:</label>
                         <textarea class="form-control" id="other-notes" name="other-notes" rows="3"></textarea>
                     </div>
+
                     <div class="form-group">
                         <label for="media-upload">Upload Image/Video:</label>
                         <input type="file" id="media-upload" name="media-upload" accept="image/*,video/*">
                     </div>
-                    <br><br>
-                    <h2 class="text-center mb-3">Budget Numbers</h2>
+
                     <div class="form-group text-center">
-                        <strong>Please provide budget numbers for events scheduled on weekends and events going beyond our hours of operation.</strong>
-                        <p>(*Mon - Thurs 7am - 8pm *Friday 7am - 6pm *Sat - Sun 8am - 5pm)</p>
+                        <h2>Budget Numbers</h2>
+                        <p class="font-weight-bold">Please provide budget numbers for events scheduled on weekends and beyond our hours of operation.</p>
+                        <p><em>Mon - Thurs: 7am - 8pm | Fri: 7am - 6pm | Sat - Sun: 8am - 5pm</em></p>
                     </div>
+
                     <div class="form-group">
                         <label for="cc-number">CC#:</label>
                         <input type="text" class="form-control" id="cc-number" name="cc-number">
                     </div>
+
                     <div class="form-group">
                         <label for="cfc-number">CFC#:</label>
                         <input type="text" class="form-control" id="cfc-number" name="cfc-number">
                     </div>
 
-                    <br><br>
+                    <div class="form-group text-center">
+                        <h2>Recording Options</h2>
+                        <div class="btn-group-toggle" data-toggle="buttons">
+                            <label class="btn btn-outline-primary">
+                                <input type="radio" name="recording-option" value="none" autocomplete="off">
+                                <strong>None</strong><br> No recording needed. 🧑‍🔧 One technician will set up and stay on site.
+                            </label>
+                            <label class="btn btn-outline-primary">
+                                <input type="radio" name="recording-option" value="basic-recording" autocomplete="off">
+                                <strong>Basic Recording</strong><br> 🎥 Fixed wide shot or Zoom setup.
+                            </label>
+                            <label class="btn btn-outline-primary">
+                                <input type="radio" name="recording-option" value="live-web-recording" autocomplete="off">
+                                <strong>Live Web Recording</strong><br> 📡 Full recording setup with additional technician.
+                            </label>
+                        </div>
+                    </div>
+
                     <div class="form-group">
-                        <div class="container text-center">
-                        <div class="mb-3">
-                            <h2>Event Space</h2>
-                        </div>
-                        <div class="btn-group-toggle mb-2" data-toggle="buttons">
-                            <label class="btn btn-outline-primary">
-                                <input type="radio" name="event-space" id="full" value="full" autocomplete="off">
-                                Event Hall Full
-                            </label>
-                            <label class="btn btn-outline-primary">
-                                <input type="radio" name="event-space" id="one-third" value="one-third" autocomplete="off">
-                                Event Hall 1/3
-                            </label>
-                            <label class="btn btn-outline-primary">
-                                <input type="radio" name="event-space" id="two-thirds" value="two-thirds" autocomplete="off">
-                                Event Hall 2/3
-                            </label>
-                            <label class="btn btn-outline-primary">
-                                <input type="radio" name="event-space" id="fleck-atrium" value="fleck-atrium" autocomplete="off">
-                                Fleck Atrium
-                            </label>
-                        </div>
+                        <p><strong>*Media-wall images:</strong> Submit one week in advance in JPEG/PNG (wide-screen). If more than 5 images, save as a video.</p>
+                        <p><strong>** IMAG:</strong> Image magnification for projection to attendees.</p>
                     </div>
-                    <br><br>
-                    <div class="container text-center">
-                        <div class="mb-3">
-                            <h2>Recording Options</h2>
-                        </div>
-                        <div class="d-flex justify-content-center mb-4">
-                            <div class="btn-group-toggle" data-toggle="buttons">
-                                <label class="btn btn-outline-primary">
-                                    <input type="radio" name="recording-option" id="none" value="none" autocomplete="off">
-                                    <strong>None</strong><br>
-                                    No recording needed. One technician will setup the event and stay on site.
-                                </label>
-                                <br><br>
-                                <label class="btn btn-outline-primary">
-                                    <input type="radio" name="recording-option" id="basic-recording" value="basic-recording" autocomplete="off">
-                                    <strong>Basic Recording</strong><br>
-                                    One technician sets up a fixed wide shot recording.
-                                </label>
-                                <br><br>
-                                <label class="btn btn-outline-primary">
-                                    <input type="radio" name="recording-option" id="advanced-recording" value="advanced-recording" autocomplete="off">
-                                    <strong>Advanced Recording</strong><br>
-                                    Full recording setup with an additional technician for camera control and IMAG.
-                                </label>
-                                <br><br>
-                                <label class="btn btn-outline-primary">
-                                    <input type="radio" name="recording-option" id="live-web-recording" value="live-web-recording" autocomplete="off">
-                                    <strong>Live Web Recording</strong><br>
-                                    Full recording setup with an additional technician for web conferencing camera control and IMAG**.
-                                </label>
-                            </div>
-                        </div>
+
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary btn-lg">Submit</button>
                     </div>
-                    <p class="mt-4">
-                        <strong>*Media-wall images:</strong> to be submitted one week in advance in JPEG or PNG format (wide-screen).
-                        The wall can accommodate multiple images in a loop. If you have more than 5 images, please save as a video using powerpoint.
-                    </p>
-                    <p>
-                        <strong>** IMAG:</strong> Image magnification refers to video projection for attendees to see the presenters up close on the screen.
-                    </p>
-                    <br>
-                    <input type="submit" value="Submit" style="font-size: 20px; padding: 15px 30px;">
                 </form>
             </div>
-        </div>
-        <div class="col-md-6">
-            <br><br>
+
+            <div class="col-md-6">
                 <h4>Event Hall Includes:</h4>
-                🧑‍🔧 1 Technician (available one hour before the event start time).<br>
-                🎤 Lectern with built-in PC (Next to stage unless specified on the floor plan).<br>
-                🔌 HDMI and VGA cable for laptop connection.<br>
-                🎵 Background Music requires Lectern PC to be in the room.<br>
-                🖱️ Presentation clicker with laser.<br>
-                🖥️ Confidence monitor.<br>
-                🎤 Up to 6 lapel microphones.<br>
-                🎤 Up to 30 handheld microphones for panels and Q&A.<br>
-                🖼️ Image displayed on the Media wall starting one hour before the event start time*.</p>
-                
+                <ul>
+                    <li>🧑‍🔧 1 Technician (available 1 hour before the event).</li>
+                    <li>🎤 Lectern with built-in PC.</li>
+                    <li>🔌 HDMI/USB-C cable for laptop connection.</li>
+                    <li>🎵 Background music via Lectern PC.</li>
+                    <li>🖱️ Presentation clicker with laser.</li>
+                    <li>🖥️ Confidence monitor.</li>
+                    <li>🎤 Up to 6 lapel microphones.</li>
+                    <li>🎤 Up to 30 handheld microphones.</li>
+                    <li>🖼️ Media-wall image display starting 1 hour before event*.</li>
+                </ul>
+
                 <h4>Fleck Atrium Includes:</h4>
-                🧑‍🔧 1 Technician (available one hour before the event start time).<br>
-                🎙️ Acrylic Podium with a mic.<br>
-                🔌 HDMI for laptop connection.<br>
-                🖱️ Presentation clicker with laser.<br>
-                🎤 Up to 10 mics (any combination of either lapel or handheld microphones which totals 10 microphones).</p>
+                <ul>
+                    <li>🧑‍🔧 1 Technician (available 1 hour before the event).</li>
+                    <li>🔌 HDMI for laptop connection.</li>
+                    <li>🖱️ Presentation clicker with laser.</li>
+                    <li>🎤 Up to 16 microphones (6 lapel, 10 handheld).</li>
+                </ul>
+            </div>
         </div>
     </div>
-    </div>
-        <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.js"></script>
-        <script src="main.js"></script>
+
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.js"></script>
+    <script src="main.js"></script>
 </body>
 </html>
