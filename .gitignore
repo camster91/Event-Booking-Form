@@ -1,1 +1,17 @@
+# Server configuration
 .htaccess
+
+# Log files - may contain sensitive data
+*.log
+email_log.txt
+
+# Environment and credentials
+.env
+*.env
+credentials.*
+config.local.php
+
+# IDE and OS files
+.DS_Store
+.idea/
+*.swp
