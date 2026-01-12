@@ -11,7 +11,16 @@ email_log.txt
 credentials.*
 config.local.php
 
+# Node.js
+node_modules/
+npm-debug.log*
+
+# Uploads (user content)
+uploads/*
+!uploads/.gitkeep
+
 # IDE and OS files
 .DS_Store
 .idea/
 *.swp
+.vscode/

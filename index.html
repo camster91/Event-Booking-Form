@@ -3,160 +3,401 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Event Hall AV Package Form</title>
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <title>Rotman AV Event Booking</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css.css">
 </head>
 <body>
-    <div class="container">
-        <h1 class="text-center my-5">Rotman AV Event Booking</h1>
+    <div class="booking-container">
+        <!-- Progress Bar -->
+        <div class="progress-wrapper">
+            <div class="progress-bar-custom">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="step-indicators">
+                <div class="step-indicator active" data-step="1">
+                    <div class="step-circle">1</div>
+                    <span>Event Details</span>
+                </div>
+                <div class="step-indicator" data-step="2">
+                    <div class="step-circle">2</div>
+                    <span>Schedule</span>
+                </div>
+                <div class="step-indicator" data-step="3">
+                    <div class="step-circle">3</div>
+                    <span>AV Options</span>
+                </div>
+                <div class="step-indicator" data-step="4">
+                    <div class="step-circle">4</div>
+                    <span>Review</span>
+                </div>
+            </div>
+        </div>
 
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <form method="post" action="process_form.php">
-                    <div class="form-group text-center">
-                        <h2>Event Space</h2>
-                        <div class="btn-group-toggle" data-toggle="buttons">
-                            <label class="btn btn-outline-primary">
-                                <input type="radio" name="event-space" value="full" autocomplete="off"> Event Hall Full
+        <div class="form-container">
+            <form id="booking-form" enctype="multipart/form-data">
+                <!-- Step 1: Event Details -->
+                <div class="form-step active" data-step="1">
+                    <h2 class="step-title">Event Details</h2>
+                    <p class="step-subtitle">Tell us about your event</p>
+
+                    <div class="mb-4">
+                        <label class="form-label">Event Space</label>
+                        <div class="space-selector">
+                            <label class="space-option" data-space="full">
+                                <input type="radio" name="event-space" value="full" required>
+                                <div class="space-card">
+                                    <div class="space-icon">🏛️</div>
+                                    <div class="space-name">Event Hall Full</div>
+                                    <div class="space-desc">Complete hall for large events</div>
+                                </div>
                             </label>
-                            <label class="btn btn-outline-primary">
-                                <input type="radio" name="event-space" value="one-third" autocomplete="off"> Event Hall 1/3
+                            <label class="space-option" data-space="two-thirds">
+                                <input type="radio" name="event-space" value="two-thirds">
+                                <div class="space-card">
+                                    <div class="space-icon">🏢</div>
+                                    <div class="space-name">Event Hall 2/3</div>
+                                    <div class="space-desc">Medium-sized events</div>
+                                </div>
                             </label>
-                            <label class="btn btn-outline-primary">
-                                <input type="radio" name="event-space" value="two-thirds" autocomplete="off"> Event Hall 2/3
+                            <label class="space-option" data-space="one-third">
+                                <input type="radio" name="event-space" value="one-third">
+                                <div class="space-card">
+                                    <div class="space-icon">🏠</div>
+                                    <div class="space-name">Event Hall 1/3</div>
+                                    <div class="space-desc">Intimate gatherings</div>
+                                </div>
                             </label>
-                            <label class="btn btn-outline-primary">
-                                <input type="radio" name="event-space" value="fleck-atrium" autocomplete="off"> Fleck Atrium
+                            <label class="space-option" data-space="fleck-atrium">
+                                <input type="radio" name="event-space" value="fleck-atrium">
+                                <div class="space-card">
+                                    <div class="space-icon">🌿</div>
+                                    <div class="space-name">Fleck Atrium</div>
+                                    <div class="space-desc">Open atrium space</div>
+                                </div>
                             </label>
                         </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="person-of-contact">Person Of Contact:</label>
-                        <input type="text" class="form-control" id="person-of-contact" name="person-of-contact" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="email-address">Email Address:</label>
-                        <input type="email" class="form-control" id="email-address" name="email-address" required>
-                    </div>
-
-<div class="form-group">
-    <label for="event-date">Event Date:</label>
-    <input type="text" class="form-control" id="event-date" name="event-date" required placeholder="Select a date">
-</div>
-
-                    <div class="form-group">
-                        <label for="event-name">Event Name:</label>
-                        <input type="text" class="form-control" id="event-name" name="event-name" required>
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6 form-group">
-                            <label for="registration-time">Registration Time:</label>
-                            <input type="time" class="form-control" id="registration-time" name="registration-time" required>
+                        <div class="col-md-6 mb-3">
+                            <label for="event-name" class="form-label">Event Name</label>
+                            <input type="text" class="form-control" id="event-name" name="event-name" required placeholder="e.g., Annual Leadership Summit">
                         </div>
-                        <div class="col-md-6 form-group">
-                            <label for="event-start-time">Event Start Time:</label>
-                            <input type="time" class="form-control" id="event-start-time" name="event-start-time" required>
-                        </div>
-                        <div class="col-md-6 form-group">
-                            <label for="presentation-end-time">Presentation End Time:</label>
-                            <input type="time" class="form-control" id="presentation-end-time" name="presentation-end-time" required>
-                        </div>
-                        <div class="col-md-6 form-group">
-                            <label for="shutdown">Shutdown:</label>
-                            <input type="time" class="form-control" id="shutdown" name="shutdown" required>
+                        <div class="col-md-6 mb-3">
+                            <label for="event-date" class="form-label">Event Date</label>
+                            <input type="text" class="form-control" id="event-date" name="event-date" required placeholder="Select a date">
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="other-notes">Other Notes:</label>
-                        <textarea class="form-control" id="other-notes" name="other-notes" rows="3"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="media-upload">Upload Image/Video:</label>
-                        <input type="file" id="media-upload" name="media-upload" accept="image/*,video/*">
-                    </div>
-
-                    <div class="form-group text-center">
-                        <h2>Budget Numbers</h2>
-                        <p class="font-weight-bold">Please provide budget numbers for events scheduled on weekends and beyond our hours of operation.</p>
-                        <p><em>Mon - Thurs: 7am - 8pm | Fri: 7am - 6pm | Sat - Sun: 8am - 5pm</em></p>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="cc-number">CC#:</label>
-                        <input type="text" class="form-control" id="cc-number" name="cc-number">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="cfc-number">CFC#:</label>
-                        <input type="text" class="form-control" id="cfc-number" name="cfc-number">
-                    </div>
-
-                    <div class="form-group text-center">
-                        <h2>Recording Options</h2>
-                        <div class="btn-group-toggle" data-toggle="buttons">
-                            <label class="btn btn-outline-primary">
-                                <input type="radio" name="recording-option" value="none" autocomplete="off">
-                                <strong>None</strong><br> No recording needed. 🧑‍🔧 One technician will set up and stay on site.
-                            </label>
-                            <label class="btn btn-outline-primary">
-                                <input type="radio" name="recording-option" value="basic-recording" autocomplete="off">
-                                <strong>Basic Recording</strong><br> 🎥 Fixed wide shot or Zoom setup.
-                            </label>
-                            <label class="btn btn-outline-primary">
-                                <input type="radio" name="recording-option" value="live-web-recording" autocomplete="off">
-                                <strong>Live Web Recording</strong><br> 📡 Full recording setup with additional technician.
-                            </label>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="person-of-contact" class="form-label">Your Name</label>
+                            <input type="text" class="form-control" id="person-of-contact" name="person-of-contact" required placeholder="Full name">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email-address" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="email-address" name="email-address" required placeholder="you@utoronto.ca">
                         </div>
                     </div>
+                </div>
 
-                    <div class="form-group">
-                        <p><strong>*Media-wall images:</strong> Submit one week in advance in JPEG/PNG (wide-screen). If more than 5 images, save as a video.</p>
-                        <p><strong>** IMAG:</strong> Image magnification for projection to attendees.</p>
+                <!-- Step 2: Schedule -->
+                <div class="form-step" data-step="2">
+                    <h2 class="step-title">Event Schedule</h2>
+                    <p class="step-subtitle">Set your event timeline</p>
+
+                    <div class="timeline-container">
+                        <div class="timeline-visual">
+                            <div class="timeline-bar">
+                                <div class="timeline-segment registration" id="timeline-registration"></div>
+                                <div class="timeline-segment event" id="timeline-event"></div>
+                                <div class="timeline-segment shutdown" id="timeline-shutdown"></div>
+                            </div>
+                            <div class="timeline-labels" id="timeline-labels"></div>
+                        </div>
+
+                        <div class="time-presets mb-4">
+                            <label class="form-label">Quick Presets</label>
+                            <div class="preset-buttons">
+                                <button type="button" class="btn btn-outline-secondary preset-btn" data-preset="morning">
+                                    ☀️ Morning (9am-12pm)
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary preset-btn" data-preset="afternoon">
+                                    🌤️ Afternoon (1pm-5pm)
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary preset-btn" data-preset="evening">
+                                    🌙 Evening (6pm-9pm)
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary preset-btn" data-preset="fullday">
+                                    📅 Full Day (9am-5pm)
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 col-lg-3 mb-3">
+                                <label for="registration-time" class="form-label">
+                                    <span class="time-dot registration-dot"></span> Registration
+                                </label>
+                                <input type="time" class="form-control time-input" id="registration-time" name="registration-time" required>
+                                <small class="text-muted">Guests arrive</small>
+                            </div>
+                            <div class="col-md-6 col-lg-3 mb-3">
+                                <label for="event-start-time" class="form-label">
+                                    <span class="time-dot event-dot"></span> Event Start
+                                </label>
+                                <input type="time" class="form-control time-input" id="event-start-time" name="event-start-time" required>
+                                <small class="text-muted">Program begins</small>
+                            </div>
+                            <div class="col-md-6 col-lg-3 mb-3">
+                                <label for="presentation-end-time" class="form-label">
+                                    <span class="time-dot event-dot"></span> Presentation End
+                                </label>
+                                <input type="time" class="form-control time-input" id="presentation-end-time" name="presentation-end-time" required>
+                                <small class="text-muted">Program ends</small>
+                            </div>
+                            <div class="col-md-6 col-lg-3 mb-3">
+                                <label for="shutdown" class="form-label">
+                                    <span class="time-dot shutdown-dot"></span> Shutdown
+                                </label>
+                                <input type="time" class="form-control time-input" id="shutdown" name="shutdown" required>
+                                <small class="text-muted">Room cleared</small>
+                            </div>
+                        </div>
+
+                        <div class="budget-alert" id="budget-alert" style="display: none;">
+                            <div class="alert alert-warning">
+                                <strong>Budget Numbers Required</strong>
+                                <p class="mb-2">Your event falls outside regular operating hours:</p>
+                                <p class="mb-0"><em>Mon-Thu: 7am-8pm | Fri: 7am-6pm | Sat-Sun: 8am-5pm</em></p>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-6 mb-3">
+                                    <label for="cc-number" class="form-label">CC# (Cost Centre)</label>
+                                    <input type="text" class="form-control" id="cc-number" name="cc-number" placeholder="Enter CC number">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="cfc-number" class="form-label">CFC# (Chart Field)</label>
+                                    <input type="text" class="form-control" id="cfc-number" name="cfc-number" placeholder="Enter CFC number">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: AV Options -->
+                <div class="form-step" data-step="3">
+                    <h2 class="step-title">AV & Recording Options</h2>
+                    <p class="step-subtitle">Choose your technical requirements</p>
+
+                    <div class="recording-options mb-4">
+                        <label class="recording-option">
+                            <input type="radio" name="recording-option" value="none" required>
+                            <div class="recording-card">
+                                <div class="recording-header">
+                                    <span class="recording-icon">🧑‍🔧</span>
+                                    <span class="recording-name">No Recording</span>
+                                </div>
+                                <p class="recording-desc">Technician will set up and remain on site. Perfect for live presentations without recording needs.</p>
+                                <ul class="recording-features">
+                                    <li>1 Technician on site</li>
+                                    <li>Full AV setup</li>
+                                    <li>Live support</li>
+                                </ul>
+                            </div>
+                        </label>
+
+                        <label class="recording-option">
+                            <input type="radio" name="recording-option" value="basic-recording">
+                            <div class="recording-card">
+                                <div class="recording-header">
+                                    <span class="recording-icon">🎥</span>
+                                    <span class="recording-name">Basic Recording</span>
+                                    <span class="popular-badge">Popular</span>
+                                </div>
+                                <p class="recording-desc">Fixed wide-shot camera or Zoom recording. Great for archiving presentations.</p>
+                                <ul class="recording-features">
+                                    <li>Static camera setup</li>
+                                    <li>Zoom integration available</li>
+                                    <li>Post-event file delivery</li>
+                                </ul>
+                            </div>
+                        </label>
+
+                        <label class="recording-option">
+                            <input type="radio" name="recording-option" value="live-web-recording">
+                            <div class="recording-card">
+                                <div class="recording-header">
+                                    <span class="recording-icon">📡</span>
+                                    <span class="recording-name">Live Web Recording</span>
+                                    <span class="premium-badge">Premium</span>
+                                </div>
+                                <p class="recording-desc">Full production setup with live switching and an additional technician.</p>
+                                <ul class="recording-features">
+                                    <li>Multiple camera angles</li>
+                                    <li>Live streaming capable</li>
+                                    <li>2 Technicians on site</li>
+                                </ul>
+                            </div>
+                        </label>
                     </div>
 
-                    <div class="text-center">
-                        <button type="submit" class="btn btn-primary btn-lg">Submit</button>
+                    <div class="additional-info mb-4">
+                        <label for="other-notes" class="form-label">Additional Notes</label>
+                        <textarea class="form-control" id="other-notes" name="other-notes" rows="3" placeholder="Any special requests, setup requirements, or questions..."></textarea>
                     </div>
-                </form>
+
+                    <div class="media-upload mb-4">
+                        <label class="form-label">Media Upload (Optional)</label>
+                        <div class="upload-zone" id="upload-zone">
+                            <input type="file" id="media-upload" name="media-upload" accept="image/*,video/*" class="upload-input">
+                            <div class="upload-content">
+                                <div class="upload-icon">📁</div>
+                                <p class="upload-text">Drag & drop files here or click to browse</p>
+                                <p class="upload-hint">Images (JPEG, PNG) or Video (MP4, MOV) - Max 50MB</p>
+                            </div>
+                            <div class="upload-preview" id="upload-preview" style="display: none;">
+                                <span class="preview-name" id="preview-name"></span>
+                                <button type="button" class="btn btn-sm btn-outline-danger" id="remove-file">Remove</button>
+                            </div>
+                        </div>
+                        <small class="text-muted">
+                            <strong>Media-wall images:</strong> Submit one week in advance (wide-screen format). More than 5 images? Save as video.
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Step 4: Review -->
+                <div class="form-step" data-step="4">
+                    <h2 class="step-title">Review Your Booking</h2>
+                    <p class="step-subtitle">Please confirm all details are correct</p>
+
+                    <div class="review-container">
+                        <div class="review-section">
+                            <h4>Event Information</h4>
+                            <div class="review-grid">
+                                <div class="review-item">
+                                    <span class="review-label">Event Name</span>
+                                    <span class="review-value" id="review-event-name"></span>
+                                </div>
+                                <div class="review-item">
+                                    <span class="review-label">Event Space</span>
+                                    <span class="review-value" id="review-event-space"></span>
+                                </div>
+                                <div class="review-item">
+                                    <span class="review-label">Date</span>
+                                    <span class="review-value" id="review-event-date"></span>
+                                </div>
+                                <div class="review-item">
+                                    <span class="review-label">Contact</span>
+                                    <span class="review-value" id="review-contact"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="review-section">
+                            <h4>Schedule</h4>
+                            <div class="review-timeline">
+                                <div class="review-time">
+                                    <span class="time-label">Registration</span>
+                                    <span class="time-value" id="review-registration"></span>
+                                </div>
+                                <div class="review-arrow">→</div>
+                                <div class="review-time">
+                                    <span class="time-label">Start</span>
+                                    <span class="time-value" id="review-start"></span>
+                                </div>
+                                <div class="review-arrow">→</div>
+                                <div class="review-time">
+                                    <span class="time-label">End</span>
+                                    <span class="time-value" id="review-end"></span>
+                                </div>
+                                <div class="review-arrow">→</div>
+                                <div class="review-time">
+                                    <span class="time-label">Shutdown</span>
+                                    <span class="time-value" id="review-shutdown"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="review-section">
+                            <h4>AV Setup</h4>
+                            <div class="review-av" id="review-recording"></div>
+                        </div>
+
+                        <div class="review-section" id="review-notes-section" style="display: none;">
+                            <h4>Additional Notes</h4>
+                            <p id="review-notes"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Buttons -->
+                <div class="form-navigation">
+                    <button type="button" class="btn btn-outline-secondary" id="prev-btn" style="display: none;">
+                        ← Back
+                    </button>
+                    <button type="button" class="btn btn-primary" id="next-btn">
+                        Continue →
+                    </button>
+                    <button type="submit" class="btn btn-success" id="submit-btn" style="display: none;">
+                        Submit Booking
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Info Panel -->
+        <div class="info-panel" id="info-panel">
+            <div class="info-toggle" id="info-toggle">
+                <span>ℹ️ What's Included</span>
             </div>
-
-            <div class="col-md-6">
-                <h4>Event Hall Includes:</h4>
-                <ul>
-                    <li>🧑‍🔧 1 Technician (available 1 hour before the event).</li>
-                    <li>🎤 Lectern with built-in PC.</li>
-                    <li>🔌 HDMI/USB-C cable for laptop connection.</li>
-                    <li>🎵 Background music via Lectern PC.</li>
-                    <li>🖱️ Presentation clicker with laser.</li>
-                    <li>🖥️ Confidence monitor.</li>
-                    <li>🎤 Up to 6 lapel microphones.</li>
-                    <li>🎤 Up to 30 handheld microphones.</li>
-                    <li>🖼️ Media-wall image display starting 1 hour before event*.</li>
-                </ul>
-
-                <h4>Fleck Atrium Includes:</h4>
-                <ul>
-                    <li>🧑‍🔧 1 Technician (available 1 hour before the event).</li>
-                    <li>🔌 HDMI for laptop connection.</li>
-                    <li>🖱️ Presentation clicker with laser.</li>
-                    <li>🎤 Up to 16 microphones (6 lapel, 10 handheld).</li>
-                </ul>
+            <div class="info-content" id="info-content">
+                <div class="info-section" id="event-hall-info">
+                    <h4>Event Hall Includes:</h4>
+                    <ul>
+                        <li>🧑‍🔧 1 Technician (available 1 hour before)</li>
+                        <li>🎤 Lectern with built-in PC</li>
+                        <li>🔌 HDMI/USB-C cable for laptop</li>
+                        <li>🎵 Background music via Lectern PC</li>
+                        <li>🖱️ Presentation clicker with laser</li>
+                        <li>🖥️ Confidence monitor</li>
+                        <li>🎤 Up to 6 lapel microphones</li>
+                        <li>🎤 Up to 30 handheld microphones</li>
+                        <li>🖼️ Media-wall display</li>
+                    </ul>
+                </div>
+                <div class="info-section" id="fleck-info" style="display: none;">
+                    <h4>Fleck Atrium Includes:</h4>
+                    <ul>
+                        <li>🧑‍🔧 1 Technician (available 1 hour before)</li>
+                        <li>🔌 HDMI for laptop connection</li>
+                        <li>🖱️ Presentation clicker with laser</li>
+                        <li>🎤 Up to 16 microphones (6 lapel, 10 handheld)</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.js"></script>
-    <script src="main.js"></script>
+    <!-- Success Modal -->
+    <div class="modal fade" id="success-modal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center py-5">
+                    <div class="success-icon">✅</div>
+                    <h3>Booking Submitted!</h3>
+                    <p class="text-muted">Your AV booking request has been received. You'll receive a confirmation email shortly.</p>
+                    <button type="button" class="btn btn-primary" onclick="location.reload()">Book Another Event</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="app.js"></script>
 </body>
 </html>
