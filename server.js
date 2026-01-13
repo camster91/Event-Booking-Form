@@ -240,7 +240,7 @@ function formatRecordingOption(option) {
     return options[option] || option;
 }
 
-// Start server
+// Start server (only if run directly, not when imported for testing)
 async function startServer() {
     await initializeEmailTransporter();
     app.listen(PORT, () => {
@@ -248,4 +248,9 @@ async function startServer() {
     });
 }
 
-startServer().catch(console.error);
+if (require.main === module) {
+    startServer().catch(console.error);
+}
+
+// Export for testing
+module.exports = { app, initializeEmailTransporter, formatEventSpace, formatRecordingOption };
