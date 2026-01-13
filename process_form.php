@@ -3,6 +3,27 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Load environment variables from .env file
+function loadEnv($path) {
+    if (!file_exists($path)) {
+        return false;
+    }
+    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) continue; // Skip comments
+        if (strpos($line, '=') === false) continue;
+        list($name, $value) = explode('=', $line, 2);
+        $name = trim($name);
+        $value = trim($value);
+        if (!getenv($name)) {
+            putenv("$name=$value");
+        }
+    }
+    return true;
+}
+
+loadEnv(__DIR__ . '/.env');
+
 $logFile = 'email_log.txt';
 
 
@@ -87,12 +108,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $cfc_number = sanitize_input($_POST['cfc-number'] ?? '');
     $event_space = sanitize_input($_POST['event-space'] ?? '');
     $recording_option = sanitize_input($_POST['recording-option'] ?? '');
-    $other_notes = $_POST['other-notes'];
+    $other_notes = sanitize_input($_POST['other-notes'] ?? '');
 
-    if(isset($_FILES['media-upload'])){
-        $file_name = $_FILES['media-upload']['name'];
-        $file_tmp =$_FILES['media-upload']['tmp_name'];
-        move_uploaded_file($file_tmp,"uploads/".$file_name);
+    $file_name = '';
+    if(isset($_FILES['media-upload']) && $_FILES['media-upload']['error'] === UPLOAD_ERR_OK){
+        $file_name = basename($_FILES['media-upload']['name']); // Sanitize filename
+        $file_tmp = $_FILES['media-upload']['tmp_name'];
+        $upload_dir = __DIR__ . '/uploads/';
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0755, true);
+        }
+        move_uploaded_file($file_tmp, $upload_dir . $file_name);
     }
 
     // Email body content
@@ -111,22 +137,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email_body .= "<p><strong>CC#:</strong> " . $cc_number . "</p>";
     $email_body .= "<p><strong>CFC#:</strong> " . $cfc_number . "</p>";
     $email_body .= "<p><strong>Other Notes:</strong> " . $other_notes . "</p>";
-    $email_body .= "<p><strong>Uploaded File:</strong> <a href='http://rotmanav.online/uploads/" . $file_name . "'>View File</a></p>";
+    if (!empty($file_name)) {
+        $email_body .= "<p><strong>Uploaded File:</strong> <a href='http://rotmanav.online/uploads/" . $file_name . "'>View File</a></p>";
+    }
     $email_body .= "</body></html>";
 
-    $to = 'cameron.ashley@utoronto.ca';
+    $to = getenv('EMAIL_TO') ?: 'cameron.ashley@utoronto.ca';
     $subject = "New Event Request: " . $event_name;
-    $headers = "From: AV Booking Form<requests@rotmanav.ca>\r\n";
+    $smtp_username = getenv('SMTP_USERNAME') ?: 'requests@rotmanav.ca';
+    $headers = "From: AV Booking Form<" . $smtp_username . ">\r\n";
     $headers .= "Reply-To: " . $email_address . "\r\n";
     $headers .= "To: " . $to . "\r\n";
     $headers .= "MIME-Version: 1.0\r\n";
     $headers .= "Content-Type: text/html; charset=utf-8\r\n";
 
     $smtpDetails = [
-        'host' => 'smtp.titan.email',
-        'port' => 465,
-        'username' => 'requests@rotmanav.ca',
-        'password' => 'willow123!' // Please note: Password should not be hardcoded like this for security reasons.
+        'host' => getenv('SMTP_HOST') ?: 'smtp.titan.email',
+        'port' => getenv('SMTP_PORT') ?: 465,
+        'username' => $smtp_username,
+        'password' => getenv('SMTP_PASSWORD') ?: ''
     ];
 
     if (smtp_mail($to, $subject, $email_body, $headers, $smtpDetails)) {
