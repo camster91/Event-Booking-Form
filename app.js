@@ -320,6 +320,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
 
             if (result.success) {
+                // Update modal with preview link if available (Ethereal test emails)
+                const modalBody = document.querySelector('#success-modal .modal-body');
+                if (result.previewUrl) {
+                    modalBody.innerHTML = `
+                        <div class="success-icon">✅</div>
+                        <h3>Booking Submitted!</h3>
+                        <p class="text-muted">Your test email was sent successfully.</p>
+                        <a href="${result.previewUrl}" target="_blank" class="btn btn-primary mb-3">
+                            View Email Preview
+                        </a>
+                        <p class="text-muted small">This link opens Ethereal's test inbox to view the email.</p>
+                        <button type="button" class="btn btn-outline-secondary" onclick="location.reload()">Book Another Event</button>
+                    `;
+                }
                 const modal = new bootstrap.Modal(document.getElementById('success-modal'));
                 modal.show();
             } else {

@@ -39,16 +39,54 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname));
 app.use('/uploads', express.static(uploadsDir));
 
-// Email transporter
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.titan.email',
-    port: parseInt(process.env.SMTP_PORT) || 465,
-    secure: true,
-    auth: {
-        user: process.env.SMTP_USERNAME,
-        pass: process.env.SMTP_PASSWORD
+// Email transporter - initialized async
+let transporter = null;
+
+async function initializeEmailTransporter() {
+    // Check if using production SMTP (Resend, SendGrid, etc.)
+    if (process.env.SMTP_HOST && process.env.SMTP_PASSWORD) {
+        transporter = nodemailer.createTransport({
+            host: process.env.SMTP_HOST,
+            port: parseInt(process.env.SMTP_PORT) || 587,
+            secure: process.env.SMTP_SECURE === 'true',
+            auth: {
+                user: process.env.SMTP_USERNAME,
+                pass: process.env.SMTP_PASSWORD
+            }
+        });
+        console.log('Using production SMTP:', process.env.SMTP_HOST);
+    } else {
+        // Try Ethereal for testing, fall back to console logging
+        try {
+            const testAccount = await nodemailer.createTestAccount();
+            transporter = nodemailer.createTransport({
+                host: 'smtp.ethereal.email',
+                port: 587,
+                secure: false,
+                auth: {
+                    user: testAccount.user,
+                    pass: testAccount.pass
+                }
+            });
+            console.log('Using Ethereal test email');
+            console.log('View sent emails at: https://ethereal.email');
+            console.log('Login:', testAccount.user);
+        } catch (err) {
+            // No network - use JSON transport (logs to console)
+            console.log('No email service available - using console logging mode');
+            transporter = {
+                sendMail: async (options) => {
+                    console.log('\n========== EMAIL PREVIEW ==========');
+                    console.log('To:', options.to);
+                    console.log('From:', options.from);
+                    console.log('Subject:', options.subject);
+                    console.log('====================================\n');
+                    return { messageId: 'console-' + Date.now() };
+                }
+            };
+        }
     }
-});
+}
 
 // Serve the main page
 app.get('/', (req, res) => {
@@ -159,12 +197,22 @@ app.post('/api/submit', upload.single('media-upload'), async (req, res) => {
             html: emailHtml
         };
 
-        await transporter.sendMail(mailOptions);
+        const info = await transporter.sendMail(mailOptions);
 
         // Log success (without sensitive data)
         console.log(`[${new Date().toISOString()}] Booking submitted: ${eventName} on ${eventDate}`);
 
-        res.json({ success: true, message: 'Booking submitted successfully!' });
+        // Get preview URL for Ethereal test emails
+        const previewUrl = nodemailer.getTestMessageUrl(info);
+        if (previewUrl) {
+            console.log('Preview email at:', previewUrl);
+        }
+
+        res.json({
+            success: true,
+            message: 'Booking submitted successfully!',
+            previewUrl: previewUrl || null
+        });
 
     } catch (error) {
         console.error('Error processing booking:', error.message);
@@ -192,6 +240,12 @@ function formatRecordingOption(option) {
     return options[option] || option;
 }
 
-app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
-});
+// Start server
+async function startServer() {
+    await initializeEmailTransporter();
+    app.listen(PORT, () => {
+        console.log(`Server running at http://localhost:${PORT}`);
+    });
+}
+
+startServer().catch(console.error);
