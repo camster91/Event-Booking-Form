@@ -1,6 +1,6 @@
 const request = require('supertest');
 const path = require('path');
-const { app, initializeEmailTransporter, formatEventSpace, formatRecordingOption } = require('../server');
+const { app, initializeEmailTransporter, formatEventSpace, formatRecordingOption } = require('../app');
 
 // Initialize email transporter before tests
 beforeAll(async () => {

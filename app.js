@@ -1,364 +1,256 @@
-// Rotman AV Booking - Modern Form Application
+require('dotenv').config();
+const express = require('express');
+const multer = require('multer');
+const nodemailer = require('nodemailer');
+const path = require('path');
+const fs = require('fs');
 
-document.addEventListener('DOMContentLoaded', () => {
-    // State
-    let currentStep = 1;
-    const totalSteps = 4;
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-    // Elements
-    const form = document.getElementById('booking-form');
-    const nextBtn = document.getElementById('next-btn');
-    const prevBtn = document.getElementById('prev-btn');
-    const submitBtn = document.getElementById('submit-btn');
-    const progressFill = document.getElementById('progress-fill');
-    const infoPanel = document.getElementById('info-panel');
-    const infoToggle = document.getElementById('info-toggle');
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
-    // Initialize date picker
-    flatpickr('#event-date', {
-        minDate: 'today',
-        maxDate: new Date().fp_incr(365),
-        dateFormat: 'F j, Y',
-        disableMobile: true,
-        onChange: function(selectedDates, dateStr) {
-            checkBudgetRequired();
-        }
-    });
-
-    // Step Navigation
-    function showStep(step) {
-        // Hide all steps
-        document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.step-indicator').forEach(s => {
-            s.classList.remove('active');
-            if (parseInt(s.dataset.step) < step) {
-                s.classList.add('completed');
-            } else {
-                s.classList.remove('completed');
-            }
-        });
-
-        // Show current step
-        document.querySelector(`.form-step[data-step="${step}"]`).classList.add('active');
-        document.querySelector(`.step-indicator[data-step="${step}"]`).classList.add('active');
-
-        // Update progress bar
-        progressFill.style.width = `${(step / totalSteps) * 100}%`;
-
-        // Update buttons
-        prevBtn.style.display = step === 1 ? 'none' : 'block';
-        nextBtn.style.display = step === totalSteps ? 'none' : 'block';
-        submitBtn.style.display = step === totalSteps ? 'block' : 'none';
-
-        // Update review on last step
-        if (step === totalSteps) {
-            updateReview();
-        }
-
-        currentStep = step;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, uploadsDir),
+    filename: (req, file, cb) => {
+        const uniqueName = `${Date.now()}-${file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+        cb(null, uniqueName);
     }
-
-    // Validate current step
-    function validateStep(step) {
-        const stepEl = document.querySelector(`.form-step[data-step="${step}"]`);
-        const requiredFields = stepEl.querySelectorAll('[required]');
-        let isValid = true;
-
-        requiredFields.forEach(field => {
-            field.classList.remove('is-invalid');
-
-            if (field.type === 'radio') {
-                const name = field.name;
-                const checked = stepEl.querySelector(`input[name="${name}"]:checked`);
-                if (!checked) {
-                    isValid = false;
-                    // Highlight the container
-                    const container = field.closest('.space-selector, .recording-options');
-                    if (container) {
-                        container.style.outline = '2px solid var(--danger)';
-                        setTimeout(() => container.style.outline = '', 2000);
-                    }
-                }
-            } else if (!field.value.trim()) {
-                isValid = false;
-                field.classList.add('is-invalid');
-            }
-        });
-
-        if (!isValid) {
-            // Shake effect
-            stepEl.style.animation = 'none';
-            stepEl.offsetHeight; // Trigger reflow
-            stepEl.style.animation = 'shake 0.5s ease';
-        }
-
-        return isValid;
-    }
-
-    // Navigation handlers
-    nextBtn.addEventListener('click', () => {
-        if (validateStep(currentStep) && currentStep < totalSteps) {
-            showStep(currentStep + 1);
-        }
-    });
-
-    prevBtn.addEventListener('click', () => {
-        if (currentStep > 1) {
-            showStep(currentStep - 1);
-        }
-    });
-
-    // Time Presets
-    const presets = {
-        morning: { registration: '08:30', start: '09:00', end: '11:30', shutdown: '12:00' },
-        afternoon: { registration: '12:30', start: '13:00', end: '16:30', shutdown: '17:00' },
-        evening: { registration: '17:30', start: '18:00', end: '20:30', shutdown: '21:00' },
-        fullday: { registration: '08:30', start: '09:00', end: '16:30', shutdown: '17:00' }
-    };
-
-    document.querySelectorAll('.preset-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const preset = presets[btn.dataset.preset];
-            if (preset) {
-                document.getElementById('registration-time').value = preset.registration;
-                document.getElementById('event-start-time').value = preset.start;
-                document.getElementById('presentation-end-time').value = preset.end;
-                document.getElementById('shutdown').value = preset.shutdown;
-
-                // Update active state
-                document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-
-                checkBudgetRequired();
-            }
-        });
-    });
-
-    // Check if budget numbers are required
-    function checkBudgetRequired() {
-        const dateInput = document.getElementById('event-date');
-        const shutdownInput = document.getElementById('shutdown');
-        const registrationInput = document.getElementById('registration-time');
-        const budgetAlert = document.getElementById('budget-alert');
-
-        if (!dateInput.value || !shutdownInput.value || !registrationInput.value) {
-            budgetAlert.style.display = 'none';
-            return;
-        }
-
-        const date = new Date(dateInput.value);
-        const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
-        const shutdown = shutdownInput.value;
-        const registration = registrationInput.value;
-
-        let needsBudget = false;
-
-        // Weekend check
-        if (dayOfWeek === 0 || dayOfWeek === 6) {
-            const startLimit = '08:00';
-            const endLimit = '17:00';
-            if (registration < startLimit || shutdown > endLimit) {
-                needsBudget = true;
-            }
-        }
-        // Friday
-        else if (dayOfWeek === 5) {
-            if (registration < '07:00' || shutdown > '18:00') {
-                needsBudget = true;
-            }
-        }
-        // Mon-Thu
-        else {
-            if (registration < '07:00' || shutdown > '20:00') {
-                needsBudget = true;
-            }
-        }
-
-        budgetAlert.style.display = needsBudget ? 'block' : 'none';
-    }
-
-    // Time input listeners
-    document.querySelectorAll('.time-input').forEach(input => {
-        input.addEventListener('change', checkBudgetRequired);
-    });
-
-    // Space selector - show relevant info
-    document.querySelectorAll('input[name="event-space"]').forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            const isFleck = e.target.value === 'fleck-atrium';
-            document.getElementById('event-hall-info').style.display = isFleck ? 'none' : 'block';
-            document.getElementById('fleck-info').style.display = isFleck ? 'block' : 'none';
-        });
-    });
-
-    // Info panel toggle
-    infoToggle.addEventListener('click', () => {
-        infoPanel.classList.toggle('open');
-    });
-
-    // File upload handling
-    const uploadZone = document.getElementById('upload-zone');
-    const uploadInput = document.getElementById('media-upload');
-    const uploadPreview = document.getElementById('upload-preview');
-    const uploadContent = uploadZone.querySelector('.upload-content');
-    const previewName = document.getElementById('preview-name');
-    const removeFile = document.getElementById('remove-file');
-
-    uploadInput.addEventListener('change', (e) => {
-        if (e.target.files.length > 0) {
-            const file = e.target.files[0];
-            previewName.textContent = file.name;
-            uploadContent.style.display = 'none';
-            uploadPreview.style.display = 'flex';
-        }
-    });
-
-    removeFile.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        uploadInput.value = '';
-        uploadContent.style.display = 'block';
-        uploadPreview.style.display = 'none';
-    });
-
-    // Drag and drop
-    uploadZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadZone.classList.add('dragover');
-    });
-
-    uploadZone.addEventListener('dragleave', () => {
-        uploadZone.classList.remove('dragover');
-    });
-
-    uploadZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadZone.classList.remove('dragover');
-        if (e.dataTransfer.files.length > 0) {
-            uploadInput.files = e.dataTransfer.files;
-            uploadInput.dispatchEvent(new Event('change'));
-        }
-    });
-
-    // Update review page
-    function updateReview() {
-        const spaceMap = {
-            'full': 'Event Hall Full',
-            'one-third': 'Event Hall 1/3',
-            'two-thirds': 'Event Hall 2/3',
-            'fleck-atrium': 'Fleck Atrium'
-        };
-
-        const recordingMap = {
-            'none': { name: 'No Recording', desc: '1 Technician on site, full AV setup' },
-            'basic-recording': { name: 'Basic Recording', desc: 'Fixed camera or Zoom, post-event delivery' },
-            'live-web-recording': { name: 'Live Web Recording', desc: 'Multi-camera, live streaming, 2 technicians' }
-        };
-
-        // Event info
-        document.getElementById('review-event-name').textContent = document.getElementById('event-name').value;
-        const spaceValue = document.querySelector('input[name="event-space"]:checked')?.value || '';
-        document.getElementById('review-event-space').textContent = spaceMap[spaceValue] || spaceValue;
-        document.getElementById('review-event-date').textContent = document.getElementById('event-date').value;
-        document.getElementById('review-contact').textContent =
-            `${document.getElementById('person-of-contact').value} (${document.getElementById('email-address').value})`;
-
-        // Schedule
-        document.getElementById('review-registration').textContent = formatTime(document.getElementById('registration-time').value);
-        document.getElementById('review-start').textContent = formatTime(document.getElementById('event-start-time').value);
-        document.getElementById('review-end').textContent = formatTime(document.getElementById('presentation-end-time').value);
-        document.getElementById('review-shutdown').textContent = formatTime(document.getElementById('shutdown').value);
-
-        // Recording
-        const recordingValue = document.querySelector('input[name="recording-option"]:checked')?.value || '';
-        const recording = recordingMap[recordingValue];
-        if (recording) {
-            document.getElementById('review-recording').innerHTML = `
-                <strong>${recording.name}</strong>
-                <p class="text-muted mb-0">${recording.desc}</p>
-            `;
-        }
-
-        // Notes
-        const notes = document.getElementById('other-notes').value;
-        const notesSection = document.getElementById('review-notes-section');
-        if (notes.trim()) {
-            notesSection.style.display = 'block';
-            document.getElementById('review-notes').textContent = notes;
-        } else {
-            notesSection.style.display = 'none';
-        }
-    }
-
-    function formatTime(time24) {
-        if (!time24) return '';
-        const [hours, minutes] = time24.split(':');
-        const h = parseInt(hours);
-        const ampm = h >= 12 ? 'PM' : 'AM';
-        const h12 = h % 12 || 12;
-        return `${h12}:${minutes} ${ampm}`;
-    }
-
-    // Form submission
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        if (!validateStep(currentStep)) return;
-
-        submitBtn.classList.add('loading');
-        submitBtn.disabled = true;
-
-        try {
-            const formData = new FormData(form);
-
-            const response = await fetch('/api/submit', {
-                method: 'POST',
-                body: formData
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                // Update modal with preview link if available (Ethereal test emails)
-                const modalBody = document.querySelector('#success-modal .modal-body');
-                if (result.previewUrl) {
-                    modalBody.innerHTML = `
-                        <div class="success-icon">✅</div>
-                        <h3>Booking Submitted!</h3>
-                        <p class="text-muted">Your test email was sent successfully.</p>
-                        <a href="${result.previewUrl}" target="_blank" class="btn btn-primary mb-3">
-                            View Email Preview
-                        </a>
-                        <p class="text-muted small">This link opens Ethereal's test inbox to view the email.</p>
-                        <button type="button" class="btn btn-outline-secondary" onclick="location.reload()">Book Another Event</button>
-                    `;
-                }
-                const modal = new bootstrap.Modal(document.getElementById('success-modal'));
-                modal.show();
-            } else {
-                alert(result.message || 'Failed to submit booking. Please try again.');
-            }
-        } catch (error) {
-            console.error('Submission error:', error);
-            alert('Failed to submit booking. Please check your connection and try again.');
-        } finally {
-            submitBtn.classList.remove('loading');
-            submitBtn.disabled = false;
-        }
-    });
-
-    // Add shake animation CSS
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-            20%, 40%, 60%, 80% { transform: translateX(5px); }
-        }
-    `;
-    document.head.appendChild(style);
-
-    // Initialize
-    showStep(1);
 });
+const upload = multer({
+    storage,
+    limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
+    fileFilter: (req, file, cb) => {
+        const allowed = /jpeg|jpg|png|gif|mp4|mov|avi|webm/;
+        const ext = allowed.test(path.extname(file.originalname).toLowerCase());
+        const mime = allowed.test(file.mimetype);
+        cb(null, ext && mime);
+    }
+});
+
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(__dirname));
+app.use('/uploads', express.static(uploadsDir));
+
+// Email transporter - initialized async
+let transporter = null;
+
+async function initializeEmailTransporter() {
+    // Check if using production SMTP (Resend, SendGrid, etc.)
+    if (process.env.SMTP_HOST && process.env.SMTP_PASSWORD) {
+        transporter = nodemailer.createTransport({
+            host: process.env.SMTP_HOST,
+            port: parseInt(process.env.SMTP_PORT) || 587,
+            secure: process.env.SMTP_SECURE === 'true',
+            auth: {
+                user: process.env.SMTP_USERNAME,
+                pass: process.env.SMTP_PASSWORD
+            }
+        });
+        console.log('Using production SMTP:', process.env.SMTP_HOST);
+    } else {
+        // Try Ethereal for testing, fall back to console logging
+        try {
+            const testAccount = await nodemailer.createTestAccount();
+            transporter = nodemailer.createTransport({
+                host: 'smtp.ethereal.email',
+                port: 587,
+                secure: false,
+                auth: {
+                    user: testAccount.user,
+                    pass: testAccount.pass
+                }
+            });
+            console.log('Using Ethereal test email');
+            console.log('View sent emails at: https://ethereal.email');
+            console.log('Login:', testAccount.user);
+        } catch (err) {
+            // No network - use JSON transport (logs to console)
+            console.log('No email service available - using console logging mode');
+            transporter = {
+                sendMail: async (options) => {
+                    console.log('\n========== EMAIL PREVIEW ==========');
+                    console.log('To:', options.to);
+                    console.log('From:', options.from);
+                    console.log('Subject:', options.subject);
+                    console.log('====================================\n');
+                    return { messageId: 'console-' + Date.now() };
+                }
+            };
+        }
+    }
+}
+
+// Serve the main page
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Handle form submission
+app.post('/api/submit', upload.single('media-upload'), async (req, res) => {
+    try {
+        const {
+            'event-space': eventSpace,
+            'person-of-contact': personOfContact,
+            'email-address': emailAddress,
+            'event-date': eventDate,
+            'event-name': eventName,
+            'registration-time': registrationTime,
+            'event-start-time': eventStartTime,
+            'presentation-end-time': presentationEndTime,
+            'shutdown': shutdown,
+            'cc-number': ccNumber,
+            'cfc-number': cfcNumber,
+            'recording-option': recordingOption,
+            'other-notes': otherNotes
+        } = req.body;
+
+        const fileName = req.file ? req.file.filename : null;
+        const baseUrl = process.env.BASE_URL || 'http://rotmanav.online';
+
+        // Build email HTML
+        const emailHtml = `
+            <html>
+            <body style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0;">
+                    <h1 style="margin: 0;">Rotman AV Event Booking</h1>
+                    <p style="margin: 10px 0 0; opacity: 0.9;">New booking request received</p>
+                </div>
+
+                <div style="background: #f8f9fa; padding: 30px; border: 1px solid #e9ecef;">
+                    <h2 style="color: #495057; border-bottom: 2px solid #667eea; padding-bottom: 10px;">${eventName || 'Untitled Event'}</h2>
+
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr style="border-bottom: 1px solid #dee2e6;">
+                            <td style="padding: 12px 0; color: #6c757d; width: 40%;">Event Space</td>
+                            <td style="padding: 12px 0; font-weight: 500;">${formatEventSpace(eventSpace)}</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #dee2e6;">
+                            <td style="padding: 12px 0; color: #6c757d;">Contact Person</td>
+                            <td style="padding: 12px 0; font-weight: 500;">${personOfContact}</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #dee2e6;">
+                            <td style="padding: 12px 0; color: #6c757d;">Email</td>
+                            <td style="padding: 12px 0;"><a href="mailto:${emailAddress}">${emailAddress}</a></td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #dee2e6;">
+                            <td style="padding: 12px 0; color: #6c757d;">Event Date</td>
+                            <td style="padding: 12px 0; font-weight: 500;">${eventDate}</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #dee2e6;">
+                            <td style="padding: 12px 0; color: #6c757d;">Recording Option</td>
+                            <td style="padding: 12px 0; font-weight: 500;">${formatRecordingOption(recordingOption)}</td>
+                        </tr>
+                    </table>
+
+                    <h3 style="color: #495057; margin-top: 25px;">Schedule</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: white; padding: 15px; border-radius: 8px;">
+                        <div><span style="color: #6c757d; display: block; font-size: 12px;">Registration</span><strong>${registrationTime}</strong></div>
+                        <div><span style="color: #6c757d; display: block; font-size: 12px;">Event Start</span><strong>${eventStartTime}</strong></div>
+                        <div><span style="color: #6c757d; display: block; font-size: 12px;">Presentation End</span><strong>${presentationEndTime}</strong></div>
+                        <div><span style="color: #6c757d; display: block; font-size: 12px;">Shutdown</span><strong>${shutdown}</strong></div>
+                    </div>
+
+                    ${(ccNumber || cfcNumber) ? `
+                    <h3 style="color: #495057; margin-top: 25px;">Budget Numbers</h3>
+                    <div style="background: white; padding: 15px; border-radius: 8px;">
+                        ${ccNumber ? `<p style="margin: 5px 0;"><strong>CC#:</strong> ${ccNumber}</p>` : ''}
+                        ${cfcNumber ? `<p style="margin: 5px 0;"><strong>CFC#:</strong> ${cfcNumber}</p>` : ''}
+                    </div>
+                    ` : ''}
+
+                    ${otherNotes ? `
+                    <h3 style="color: #495057; margin-top: 25px;">Additional Notes</h3>
+                    <div style="background: white; padding: 15px; border-radius: 8px;">
+                        <p style="margin: 0; white-space: pre-wrap;">${otherNotes}</p>
+                    </div>
+                    ` : ''}
+
+                    ${fileName ? `
+                    <h3 style="color: #495057; margin-top: 25px;">Attached Media</h3>
+                    <div style="background: white; padding: 15px; border-radius: 8px;">
+                        <a href="${baseUrl}/uploads/${fileName}" style="color: #667eea;">View Uploaded File</a>
+                    </div>
+                    ` : ''}
+                </div>
+
+                <div style="background: #495057; color: white; padding: 15px; text-align: center; border-radius: 0 0 10px 10px; font-size: 12px;">
+                    Rotman AV Services
+                </div>
+            </body>
+            </html>
+        `;
+
+        // Send email
+        const mailOptions = {
+            from: `"AV Booking Form" <${process.env.SMTP_USERNAME}>`,
+            to: process.env.EMAIL_TO || 'cameron.ashley@utoronto.ca',
+            replyTo: emailAddress,
+            subject: `New Event Request: ${eventName || 'Untitled Event'}`,
+            html: emailHtml
+        };
+
+        const info = await transporter.sendMail(mailOptions);
+
+        // Log success (without sensitive data)
+        console.log(`[${new Date().toISOString()}] Booking submitted: ${eventName} on ${eventDate}`);
+
+        // Get preview URL for Ethereal test emails
+        const previewUrl = nodemailer.getTestMessageUrl(info);
+        if (previewUrl) {
+            console.log('Preview email at:', previewUrl);
+        }
+
+        res.json({
+            success: true,
+            message: 'Booking submitted successfully!',
+            previewUrl: previewUrl || null
+        });
+
+    } catch (error) {
+        console.error('Error processing booking:', error.message);
+        res.status(500).json({ success: false, message: 'Failed to submit booking. Please try again.' });
+    }
+});
+
+// Helper functions
+function formatEventSpace(space) {
+    const spaces = {
+        'full': 'Event Hall Full',
+        'one-third': 'Event Hall 1/3',
+        'two-thirds': 'Event Hall 2/3',
+        'fleck-atrium': 'Fleck Atrium'
+    };
+    return spaces[space] || space;
+}
+
+function formatRecordingOption(option) {
+    const options = {
+        'none': 'None - Technician on site only',
+        'basic-recording': 'Basic Recording - Fixed wide shot or Zoom',
+        'live-web-recording': 'Live Web Recording - Full setup with additional technician'
+    };
+    return options[option] || option;
+}
+
+// Start server (only if run directly, not when imported for testing)
+async function startServer() {
+    await initializeEmailTransporter();
+    app.listen(PORT, () => {
+        console.log(`Server running at http://localhost:${PORT}`);
+    });
+}
+
+if (require.main === module) {
+    startServer().catch(console.error);
+}
+
+// Export for testing
+module.exports = { app, initializeEmailTransporter, formatEventSpace, formatRecordingOption };

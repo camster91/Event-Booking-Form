@@ -2,13 +2,13 @@
   "name": "rotman-av-booking",
   "version": "2.0.0",
   "description": "Rotman AV Event Booking System",
-  "main": "server.js",
+  "main": "app.js",
   "engines": {
     "node": ">=18.0.0"
   },
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js",
+    "start": "node app.js",
+    "dev": "node app.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
