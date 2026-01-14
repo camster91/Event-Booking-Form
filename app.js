@@ -7,6 +7,10 @@ const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Determine static files directory (dist in production, root in development)
+const staticDir = isProduction ? path.join(__dirname, 'dist') : __dirname;
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -36,7 +40,7 @@ const upload = multer({
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(__dirname));
+app.use(express.static(staticDir));
 app.use('/uploads', express.static(uploadsDir));
 
 // Email transporter - initialized async
@@ -90,7 +94,7 @@ async function initializeEmailTransporter() {
 
 // Serve the main page
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(staticDir, 'index.html'));
 });
 
 // Handle form submission
