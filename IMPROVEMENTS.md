@@ -2,27 +2,34 @@
 
 ## Summary
 
-**Current Status**: Build passing, 13/13 tests passing, 68.11% code coverage
+**Current Status**: Build passing, 31/31 tests passing, 78% code coverage
 
-## Bugs Fixed in This Session
+## Completed Improvements
 
+### Session 1 - Bug Fixes
 1. **Undefined eventName in log output** (`app.js:203`) - Now defaults to "Untitled Event"
 2. **Undefined SMTP_USERNAME in email from field** (`app.js:193`) - Now defaults to "noreply@rotmanav.ca"
 
+### Session 2 - Security & Validation
+1. **Input Sanitization** - Added XSS prevention using `escape-html` library
+2. **Rate Limiting** - Added 10 requests per 15 minutes limit on `/api/submit`
+3. **Email Validation** - Added server-side email validation using `validator` library
+4. **Time Validation** - Added validation ensuring registration <= start < end < shutdown
+5. **Client-side File Validation** - Added file size (50MB) and type validation before upload
+6. **ESLint Configuration** - Added `eslint.config.js` with lint scripts
+7. **Health Check Endpoint** - Added `GET /health` for monitoring
+8. **Comprehensive Tests** - Added 18 new tests (31 total), coverage improved to 78%
+
 ---
 
-## Priority Improvements
+## Remaining Improvements
 
 ### High Priority - Security
 
-- [ ] **Input Sanitization**: Add HTML/XSS sanitization for user input before including in emails (use `escape-html` or similar)
 - [ ] **CSRF Protection**: Add CSRF tokens to the form submission endpoint
-- [ ] **Rate Limiting**: Implement rate limiting on `/api/submit` to prevent spam (use `express-rate-limit`)
-- [ ] **Email Validation**: Add server-side email format validation
 
 ### High Priority - Reliability
 
-- [ ] **Time Validation**: Ensure schedule times are in correct order (registration < start < end < shutdown)
 - [ ] **File Upload Cleanup**: Implement periodic cleanup of old uploaded files
 - [ ] **Error Handling Tests**: Add tests for error scenarios (file upload errors, email failures)
 
@@ -48,7 +55,7 @@
 
 ## Medium Priority - Code Quality
 
-- [ ] **ESLint Configuration**: Add `.eslintrc.js` with recommended rules
+- [x] **ESLint Configuration**: Added `eslint.config.js` with recommended rules
 - [ ] **Prettier Configuration**: Add `.prettierrc` for consistent formatting
 - [ ] **TypeScript Migration**: Convert to TypeScript for type safety (optional, long-term)
 - [ ] **Environment Validation**: Validate required env vars at startup
@@ -59,14 +66,14 @@
 
 ### Backend Enhancements
 
-- [ ] **Health Check Endpoint**: Add `GET /health` for monitoring
+- [x] **Health Check Endpoint**: Added `GET /health` for monitoring
 - [ ] **API Documentation**: Add OpenAPI/Swagger documentation
 - [ ] **Structured Logging**: Replace console.log with a logging library (winston/pino)
 - [ ] **Confirmation Emails**: Send confirmation email to the submitter
 
 ### Frontend Enhancements
 
-- [ ] **Client-side File Validation**: Validate file size before upload attempt
+- [x] **Client-side File Validation**: Added file size and type validation
 - [ ] **Offline Support**: Add service worker for offline form caching
 - [ ] **Accessibility (a11y)**: Add ARIA labels and keyboard navigation improvements
 - [ ] **Form Auto-save**: Save form progress to localStorage
@@ -85,34 +92,19 @@
 | Item | Location | Description |
 |------|----------|-------------|
 | Deprecated packages | `npm install` warnings | `glob@7.2.3` and `inflight@1.0.6` are deprecated |
-| Hardcoded fallbacks | `app.js:116` | BASE_URL fallback is hardcoded |
+| Hardcoded fallbacks | `app.js:138` | BASE_URL fallback is hardcoded |
 | Duplicate space/recording maps | `app.js` + `form.js` | Same mappings exist in both files |
 
 ---
 
-## Uncovered Code Paths (from coverage report)
+## Quick Wins Completed
 
-| Lines | Description |
-|-------|-------------|
-| 14 | Creating uploads directory |
-| 19-22 | Multer filename generation |
-| 29-32 | Multer file filter |
-| 48-57 | Production SMTP setup |
-| 62-73 | Ethereal test email setup |
-| 208 | Preview URL handling |
-| 218-219 | Error handling |
-| 245-252 | Server startup |
+1. ~~Add ESLint configuration~~ - Done
+2. ~~Add health check endpoint~~ - Done
+3. ~~Add rate limiting middleware~~ - Done
+4. ~~Add client-side file size validation~~ - Done
+5. Extract shared constants (space/recording maps) to a shared file - Pending
 
 ---
 
-## Quick Wins (< 1 hour each)
-
-1. Add ESLint configuration
-2. Add health check endpoint
-3. Add rate limiting middleware
-4. Add client-side file size validation
-5. Extract shared constants (space/recording maps) to a shared file
-
----
-
-*Generated: 2026-01-20*
+*Updated: 2026-01-20*
