@@ -190,7 +190,7 @@ app.post('/api/submit', upload.single('media-upload'), async (req, res) => {
 
         // Send email
         const mailOptions = {
-            from: `"AV Booking Form" <${process.env.SMTP_USERNAME}>`,
+            from: `"AV Booking Form" <${process.env.SMTP_USERNAME || 'noreply@rotmanav.ca'}>`,
             to: process.env.EMAIL_TO || 'cameron.ashley@utoronto.ca',
             replyTo: emailAddress,
             subject: `New Event Request: ${eventName || 'Untitled Event'}`,
@@ -200,7 +200,7 @@ app.post('/api/submit', upload.single('media-upload'), async (req, res) => {
         const info = await transporter.sendMail(mailOptions);
 
         // Log success (without sensitive data)
-        console.log(`[${new Date().toISOString()}] Booking submitted: ${eventName} on ${eventDate}`);
+        console.log(`[${new Date().toISOString()}] Booking submitted: ${eventName || 'Untitled Event'} on ${eventDate}`);
 
         // Get preview URL for Ethereal test emails
         const previewUrl = nodemailer.getTestMessageUrl(info);
