@@ -4,6 +4,9 @@ const multer = require('multer');
 const nodemailer = require('nodemailer');
 const path = require('path');
 const fs = require('fs');
+const rateLimit = require('express-rate-limit');
+const escapeHtml = require('escape-html');
+const validator = require('validator');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -33,11 +36,30 @@ const upload = multer({
     }
 });
 
+// Rate limiting middleware
+const submitLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // Limit each IP to 10 requests per windowMs
+    message: { success: false, message: 'Too many booking requests. Please try again later.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname));
 app.use('/uploads', express.static(uploadsDir));
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        email: transporter ? 'configured' : 'not configured'
+    });
+});
 
 // Email transporter - initialized async
 let transporter = null;
@@ -93,8 +115,45 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// Validation helper functions
+function validateEmail(email) {
+    return email && validator.isEmail(email);
+}
+
+function validateTimeOrder(registration, start, end, shutdown) {
+    const times = [registration, start, end, shutdown];
+    // Check all times are provided
+    if (times.some(t => !t)) return { valid: false, message: 'All time fields are required' };
+
+    // Convert to comparable format (minutes since midnight)
+    const toMinutes = (time) => {
+        const [hours, minutes] = time.split(':').map(Number);
+        return hours * 60 + minutes;
+    };
+
+    const [regMin, startMin, endMin, shutdownMin] = times.map(toMinutes);
+
+    if (regMin > startMin) {
+        return { valid: false, message: 'Registration time must be before or at event start time' };
+    }
+    if (startMin > endMin) {
+        return { valid: false, message: 'Event start time must be before presentation end time' };
+    }
+    if (endMin > shutdownMin) {
+        return { valid: false, message: 'Presentation end time must be before shutdown time' };
+    }
+
+    return { valid: true };
+}
+
+// Sanitize user input for email HTML
+function sanitizeForEmail(input) {
+    if (!input) return '';
+    return escapeHtml(String(input));
+}
+
 // Handle form submission
-app.post('/api/submit', upload.single('media-upload'), async (req, res) => {
+app.post('/api/submit', submitLimiter, upload.single('media-upload'), async (req, res) => {
     try {
         const {
             'event-space': eventSpace,
@@ -112,10 +171,32 @@ app.post('/api/submit', upload.single('media-upload'), async (req, res) => {
             'other-notes': otherNotes
         } = req.body;
 
+        // Validate email
+        if (!validateEmail(emailAddress)) {
+            return res.status(400).json({ success: false, message: 'Please provide a valid email address' });
+        }
+
+        // Validate time order
+        const timeValidation = validateTimeOrder(registrationTime, eventStartTime, presentationEndTime, shutdown);
+        if (!timeValidation.valid) {
+            return res.status(400).json({ success: false, message: timeValidation.message });
+        }
+
+        // Sanitize inputs for email HTML
+        const sanitized = {
+            eventName: sanitizeForEmail(eventName),
+            personOfContact: sanitizeForEmail(personOfContact),
+            emailAddress: sanitizeForEmail(emailAddress),
+            eventDate: sanitizeForEmail(eventDate),
+            ccNumber: sanitizeForEmail(ccNumber),
+            cfcNumber: sanitizeForEmail(cfcNumber),
+            otherNotes: sanitizeForEmail(otherNotes),
+        };
+
         const fileName = req.file ? req.file.filename : null;
         const baseUrl = process.env.BASE_URL || 'http://rotmanav.online';
 
-        // Build email HTML
+        // Build email HTML (using sanitized values to prevent XSS)
         const emailHtml = `
             <html>
             <body style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -125,7 +206,7 @@ app.post('/api/submit', upload.single('media-upload'), async (req, res) => {
                 </div>
 
                 <div style="background: #f8f9fa; padding: 30px; border: 1px solid #e9ecef;">
-                    <h2 style="color: #495057; border-bottom: 2px solid #667eea; padding-bottom: 10px;">${eventName || 'Untitled Event'}</h2>
+                    <h2 style="color: #495057; border-bottom: 2px solid #667eea; padding-bottom: 10px;">${sanitized.eventName || 'Untitled Event'}</h2>
 
                     <table style="width: 100%; border-collapse: collapse;">
                         <tr style="border-bottom: 1px solid #dee2e6;">
@@ -134,15 +215,15 @@ app.post('/api/submit', upload.single('media-upload'), async (req, res) => {
                         </tr>
                         <tr style="border-bottom: 1px solid #dee2e6;">
                             <td style="padding: 12px 0; color: #6c757d;">Contact Person</td>
-                            <td style="padding: 12px 0; font-weight: 500;">${personOfContact}</td>
+                            <td style="padding: 12px 0; font-weight: 500;">${sanitized.personOfContact}</td>
                         </tr>
                         <tr style="border-bottom: 1px solid #dee2e6;">
                             <td style="padding: 12px 0; color: #6c757d;">Email</td>
-                            <td style="padding: 12px 0;"><a href="mailto:${emailAddress}">${emailAddress}</a></td>
+                            <td style="padding: 12px 0;"><a href="mailto:${sanitized.emailAddress}">${sanitized.emailAddress}</a></td>
                         </tr>
                         <tr style="border-bottom: 1px solid #dee2e6;">
                             <td style="padding: 12px 0; color: #6c757d;">Event Date</td>
-                            <td style="padding: 12px 0; font-weight: 500;">${eventDate}</td>
+                            <td style="padding: 12px 0; font-weight: 500;">${sanitized.eventDate}</td>
                         </tr>
                         <tr style="border-bottom: 1px solid #dee2e6;">
                             <td style="padding: 12px 0; color: #6c757d;">Recording Option</td>
@@ -158,18 +239,18 @@ app.post('/api/submit', upload.single('media-upload'), async (req, res) => {
                         <div><span style="color: #6c757d; display: block; font-size: 12px;">Shutdown</span><strong>${shutdown}</strong></div>
                     </div>
 
-                    ${(ccNumber || cfcNumber) ? `
+                    ${(sanitized.ccNumber || sanitized.cfcNumber) ? `
                     <h3 style="color: #495057; margin-top: 25px;">Budget Numbers</h3>
                     <div style="background: white; padding: 15px; border-radius: 8px;">
-                        ${ccNumber ? `<p style="margin: 5px 0;"><strong>CC#:</strong> ${ccNumber}</p>` : ''}
-                        ${cfcNumber ? `<p style="margin: 5px 0;"><strong>CFC#:</strong> ${cfcNumber}</p>` : ''}
+                        ${sanitized.ccNumber ? `<p style="margin: 5px 0;"><strong>CC#:</strong> ${sanitized.ccNumber}</p>` : ''}
+                        ${sanitized.cfcNumber ? `<p style="margin: 5px 0;"><strong>CFC#:</strong> ${sanitized.cfcNumber}</p>` : ''}
                     </div>
                     ` : ''}
 
-                    ${otherNotes ? `
+                    ${sanitized.otherNotes ? `
                     <h3 style="color: #495057; margin-top: 25px;">Additional Notes</h3>
                     <div style="background: white; padding: 15px; border-radius: 8px;">
-                        <p style="margin: 0; white-space: pre-wrap;">${otherNotes}</p>
+                        <p style="margin: 0; white-space: pre-wrap;">${sanitized.otherNotes}</p>
                     </div>
                     ` : ''}
 
@@ -253,4 +334,12 @@ if (require.main === module) {
 }
 
 // Export for testing
-module.exports = { app, initializeEmailTransporter, formatEventSpace, formatRecordingOption };
+module.exports = {
+    app,
+    initializeEmailTransporter,
+    formatEventSpace,
+    formatRecordingOption,
+    validateEmail,
+    validateTimeOrder,
+    sanitizeForEmail
+};
