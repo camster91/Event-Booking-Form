@@ -205,10 +205,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const previewName = document.getElementById('preview-name');
     const removeFile = document.getElementById('remove-file');
 
+    const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB in bytes
+    const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm'];
+
+    function validateFile(file) {
+        if (file.size > MAX_FILE_SIZE) {
+            alert(`File is too large. Maximum size is 50MB. Your file is ${(file.size / (1024 * 1024)).toFixed(1)}MB.`);
+            return false;
+        }
+        if (!ALLOWED_TYPES.includes(file.type)) {
+            alert('Invalid file type. Please upload an image (JPEG, PNG, GIF) or video (MP4, MOV, AVI, WEBM).');
+            return false;
+        }
+        return true;
+    }
+
     uploadInput.addEventListener('change', (e) => {
         if (e.target.files.length > 0) {
             const file = e.target.files[0];
-            previewName.textContent = file.name;
+            if (!validateFile(file)) {
+                uploadInput.value = '';
+                return;
+            }
+            previewName.textContent = `${file.name} (${(file.size / (1024 * 1024)).toFixed(1)}MB)`;
             uploadContent.style.display = 'none';
             uploadPreview.style.display = 'flex';
         }
@@ -236,8 +255,11 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         uploadZone.classList.remove('dragover');
         if (e.dataTransfer.files.length > 0) {
-            uploadInput.files = e.dataTransfer.files;
-            uploadInput.dispatchEvent(new Event('change'));
+            const file = e.dataTransfer.files[0];
+            if (validateFile(file)) {
+                uploadInput.files = e.dataTransfer.files;
+                uploadInput.dispatchEvent(new Event('change'));
+            }
         }
     });
 
