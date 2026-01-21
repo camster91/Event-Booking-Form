@@ -10,7 +10,7 @@ const {
     sanitizeForEmail
 } = require('../app');
 
-// Initialize email transporter before tests
+// Initialize email transporter before tests (will use console logging fallback)
 beforeAll(async () => {
     await initializeEmailTransporter();
 });

@@ -65,6 +65,18 @@ app.get('/health', (req, res) => {
 let transporter = null;
 
 async function initializeEmailTransporter() {
+    // Use console logging in test environment
+    if (process.env.NODE_ENV === 'test') {
+        console.log('Test environment - using console logging mode');
+        transporter = {
+            sendMail: async (options) => {
+                console.log('Email sent (test mode):', options.subject);
+                return { messageId: 'test-' + Date.now() };
+            }
+        };
+        return;
+    }
+
     // Check if using production SMTP (Resend, SendGrid, etc.)
     if (process.env.SMTP_HOST && process.env.SMTP_PASSWORD) {
         transporter = nodemailer.createTransport({
