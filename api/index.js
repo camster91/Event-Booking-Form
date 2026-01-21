@@ -1,11 +1,11 @@
 const express = require('express');
 const nodemailer = require('nodemailer');
+const formidable = require('formidable');
 
 const app = express();
 
-// Middleware
+// Middleware for JSON (formidable handles multipart)
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
 // Email transporter
 let transporter = null;
@@ -23,6 +23,7 @@ async function getTransporter() {
                 pass: process.env.SMTP_PASSWORD
             }
         });
+        console.log('Email configured with SMTP:', process.env.SMTP_HOST);
     } else {
         // Fallback: create test account or use console logging
         try {
@@ -36,6 +37,7 @@ async function getTransporter() {
                     pass: testAccount.pass
                 }
             });
+            console.log('Using Ethereal test email');
         } catch (err) {
             // Console logging fallback
             transporter = {
@@ -57,7 +59,7 @@ function formatEventSpace(space) {
         'two-thirds': 'Event Hall 2/3',
         'fleck-atrium': 'Fleck Atrium'
     };
-    return spaces[space] || space;
+    return spaces[space] || space || 'Not specified';
 }
 
 function formatRecordingOption(option) {
@@ -66,27 +68,58 @@ function formatRecordingOption(option) {
         'basic-recording': 'Basic Recording - Fixed wide shot or Zoom',
         'live-web-recording': 'Live Web Recording - Full setup with additional technician'
     };
-    return options[option] || option;
+    return options[option] || option || 'Not specified';
+}
+
+// Parse multipart form data
+function parseForm(req) {
+    return new Promise((resolve, reject) => {
+        const form = formidable({
+            maxFileSize: 50 * 1024 * 1024, // 50MB
+        });
+
+        form.parse(req, (err, fields, files) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+            // formidable v3 returns arrays for field values
+            const flatFields = {};
+            for (const [key, value] of Object.entries(fields)) {
+                flatFields[key] = Array.isArray(value) ? value[0] : value;
+            }
+            resolve({ fields: flatFields, files });
+        });
+    });
 }
 
 // Handle form submission
 app.post('/api/submit', async (req, res) => {
     try {
-        const {
-            'event-space': eventSpace,
-            'person-of-contact': personOfContact,
-            'email-address': emailAddress,
-            'event-date': eventDate,
-            'event-name': eventName,
-            'registration-time': registrationTime,
-            'event-start-time': eventStartTime,
-            'presentation-end-time': presentationEndTime,
-            'shutdown': shutdown,
-            'cc-number': ccNumber,
-            'cfc-number': cfcNumber,
-            'recording-option': recordingOption,
-            'other-notes': otherNotes
-        } = req.body;
+        // Parse multipart form data
+        const { fields } = await parseForm(req);
+
+        const eventSpace = fields['event-space'];
+        const personOfContact = fields['person-of-contact'];
+        const emailAddress = fields['email-address'];
+        const eventDate = fields['event-date'];
+        const eventName = fields['event-name'];
+        const registrationTime = fields['registration-time'];
+        const eventStartTime = fields['event-start-time'];
+        const presentationEndTime = fields['presentation-end-time'];
+        const shutdown = fields['shutdown'];
+        const ccNumber = fields['cc-number'];
+        const cfcNumber = fields['cfc-number'];
+        const recordingOption = fields['recording-option'];
+        const otherNotes = fields['other-notes'];
+
+        // Log received data for debugging
+        console.log('Received booking:', {
+            eventName: eventName || 'Untitled',
+            eventDate,
+            contact: personOfContact,
+            email: emailAddress
+        });
 
         // Build email HTML
         const emailHtml = `
@@ -107,15 +140,15 @@ app.post('/api/submit', async (req, res) => {
                         </tr>
                         <tr style="border-bottom: 1px solid #dee2e6;">
                             <td style="padding: 12px 0; color: #6c757d;">Contact Person</td>
-                            <td style="padding: 12px 0; font-weight: 500;">${personOfContact}</td>
+                            <td style="padding: 12px 0; font-weight: 500;">${personOfContact || 'Not provided'}</td>
                         </tr>
                         <tr style="border-bottom: 1px solid #dee2e6;">
                             <td style="padding: 12px 0; color: #6c757d;">Email</td>
-                            <td style="padding: 12px 0;"><a href="mailto:${emailAddress}">${emailAddress}</a></td>
+                            <td style="padding: 12px 0;"><a href="mailto:${emailAddress}">${emailAddress || 'Not provided'}</a></td>
                         </tr>
                         <tr style="border-bottom: 1px solid #dee2e6;">
                             <td style="padding: 12px 0; color: #6c757d;">Event Date</td>
-                            <td style="padding: 12px 0; font-weight: 500;">${eventDate}</td>
+                            <td style="padding: 12px 0; font-weight: 500;">${eventDate || 'Not provided'}</td>
                         </tr>
                         <tr style="border-bottom: 1px solid #dee2e6;">
                             <td style="padding: 12px 0; color: #6c757d;">Recording Option</td>
@@ -125,10 +158,10 @@ app.post('/api/submit', async (req, res) => {
 
                     <h3 style="color: #495057; margin-top: 25px;">Schedule</h3>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: white; padding: 15px; border-radius: 8px;">
-                        <div><span style="color: #6c757d; display: block; font-size: 12px;">Registration</span><strong>${registrationTime}</strong></div>
-                        <div><span style="color: #6c757d; display: block; font-size: 12px;">Event Start</span><strong>${eventStartTime}</strong></div>
-                        <div><span style="color: #6c757d; display: block; font-size: 12px;">Presentation End</span><strong>${presentationEndTime}</strong></div>
-                        <div><span style="color: #6c757d; display: block; font-size: 12px;">Shutdown</span><strong>${shutdown}</strong></div>
+                        <div><span style="color: #6c757d; display: block; font-size: 12px;">Registration</span><strong>${registrationTime || 'N/A'}</strong></div>
+                        <div><span style="color: #6c757d; display: block; font-size: 12px;">Event Start</span><strong>${eventStartTime || 'N/A'}</strong></div>
+                        <div><span style="color: #6c757d; display: block; font-size: 12px;">Presentation End</span><strong>${presentationEndTime || 'N/A'}</strong></div>
+                        <div><span style="color: #6c757d; display: block; font-size: 12px;">Shutdown</span><strong>${shutdown || 'N/A'}</strong></div>
                     </div>
 
                     ${(ccNumber || cfcNumber) ? `
@@ -165,7 +198,13 @@ app.post('/api/submit', async (req, res) => {
         };
 
         const info = await emailTransporter.sendMail(mailOptions);
-        console.log(`Booking submitted: ${eventName} on ${eventDate}`);
+
+        // Log success
+        console.log(`[${new Date().toISOString()}] Email sent successfully:`, {
+            messageId: info.messageId,
+            to: mailOptions.to,
+            subject: mailOptions.subject
+        });
 
         const previewUrl = nodemailer.getTestMessageUrl(info);
 
@@ -176,7 +215,7 @@ app.post('/api/submit', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error processing booking:', error.message);
+        console.error('Error processing booking:', error.message, error.stack);
         res.status(500).json({ success: false, message: 'Failed to submit booking. Please try again.' });
     }
 });
