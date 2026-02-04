@@ -79,17 +79,33 @@ async function initializeEmailTransporter() {
 
     // Check if using production SMTP (Resend, SendGrid, etc.)
     if (process.env.SMTP_HOST && process.env.SMTP_PASSWORD) {
-        transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST,
-            port: parseInt(process.env.SMTP_PORT) || 587,
-            secure: process.env.SMTP_SECURE === 'true',
-            auth: {
-                user: process.env.SMTP_USERNAME,
-                pass: process.env.SMTP_PASSWORD
-            }
-        });
-        console.log('Using production SMTP:', process.env.SMTP_HOST);
-    } else {
+        try {
+            transporter = nodemailer.createTransport({
+                host: process.env.SMTP_HOST,
+                port: parseInt(process.env.SMTP_PORT) || 587,
+                secure: process.env.SMTP_SECURE === 'true',
+                auth: {
+                    user: process.env.SMTP_USERNAME,
+                    pass: process.env.SMTP_PASSWORD
+                }
+            });
+            console.log('Using production SMTP:', process.env.SMTP_HOST);
+            console.log('SMTP Port:', process.env.SMTP_PORT);
+            console.log('SMTP Secure:', process.env.SMTP_SECURE);
+            console.log('SMTP Username:', process.env.SMTP_USERNAME);
+
+            // Verify SMTP connection
+            await transporter.verify();
+            console.log('SMTP connection verified successfully');
+        } catch (smtpError) {
+            console.error('SMTP configuration error:', smtpError.message);
+            console.log('Falling back to Ethereal test email...');
+            transporter = null; // Reset to allow fallback
+        }
+    }
+
+    // Fallback if no production SMTP or SMTP failed
+    if (!transporter) {
         // Try Ethereal for testing, fall back to console logging
         try {
             const testAccount = await nodemailer.createTestAccount();
