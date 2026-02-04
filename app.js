@@ -79,29 +79,28 @@ async function initializeEmailTransporter() {
 
     // Check if using production SMTP (Resend, SendGrid, etc.)
     if (process.env.SMTP_HOST && process.env.SMTP_PASSWORD) {
-        try {
-            transporter = nodemailer.createTransport({
-                host: process.env.SMTP_HOST,
-                port: parseInt(process.env.SMTP_PORT) || 587,
-                secure: process.env.SMTP_SECURE === 'true',
-                auth: {
-                    user: process.env.SMTP_USERNAME,
-                    pass: process.env.SMTP_PASSWORD
-                }
-            });
-            console.log('Using production SMTP:', process.env.SMTP_HOST);
-            console.log('SMTP Port:', process.env.SMTP_PORT);
-            console.log('SMTP Secure:', process.env.SMTP_SECURE);
-            console.log('SMTP Username:', process.env.SMTP_USERNAME);
+        transporter = nodemailer.createTransport({
+            host: process.env.SMTP_HOST,
+            port: parseInt(process.env.SMTP_PORT) || 587,
+            secure: process.env.SMTP_SECURE === 'true',
+            auth: {
+                user: process.env.SMTP_USERNAME,
+                pass: process.env.SMTP_PASSWORD
+            },
+            // Add connection timeout to prevent hanging
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 10000
+        });
+        console.log('Using production SMTP:', process.env.SMTP_HOST);
+        console.log('SMTP Port:', process.env.SMTP_PORT);
+        console.log('SMTP Secure:', process.env.SMTP_SECURE);
+        console.log('SMTP Username:', process.env.SMTP_USERNAME);
 
-            // Verify SMTP connection
-            await transporter.verify();
-            console.log('SMTP connection verified successfully');
-        } catch (smtpError) {
-            console.error('SMTP configuration error:', smtpError.message);
-            console.log('Falling back to Ethereal test email...');
-            transporter = null; // Reset to allow fallback
-        }
+        // Verify SMTP connection in background (don't block startup)
+        transporter.verify()
+            .then(() => console.log('SMTP connection verified successfully'))
+            .catch((err) => console.error('SMTP verification warning:', err.message));
     }
 
     // Fallback if no production SMTP or SMTP failed
