@@ -57,12 +57,17 @@ app.get('/health', (req, res) => {
         status: 'ok',
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
-        email: transporter ? 'configured' : 'not configured'
+        email: transporter ? 'configured' : 'not configured',
+        emailStatus: emailStatus,
+        smtpHost: process.env.SMTP_HOST || 'not set',
+        smtpPort: process.env.SMTP_PORT || 'not set',
+        emailTo: process.env.EMAIL_TO || 'not set'
     });
 });
 
 // Email transporter - initialized async
 let transporter = null;
+let emailStatus = { status: 'initializing', error: null, verifiedAt: null };
 
 async function initializeEmailTransporter() {
     // Use console logging in test environment
@@ -96,11 +101,18 @@ async function initializeEmailTransporter() {
         console.log('SMTP Port:', process.env.SMTP_PORT);
         console.log('SMTP Secure:', process.env.SMTP_SECURE);
         console.log('SMTP Username:', process.env.SMTP_USERNAME);
+        emailStatus = { status: 'connecting', error: null, verifiedAt: null };
 
         // Verify SMTP connection in background (don't block startup)
         transporter.verify()
-            .then(() => console.log('SMTP connection verified successfully'))
-            .catch((err) => console.error('SMTP verification warning:', err.message));
+            .then(() => {
+                console.log('SMTP connection verified successfully');
+                emailStatus = { status: 'verified', error: null, verifiedAt: new Date().toISOString() };
+            })
+            .catch((err) => {
+                console.error('SMTP verification warning:', err.message);
+                emailStatus = { status: 'error', error: err.message, verifiedAt: null };
+            });
     }
 
     // Fallback if no production SMTP or SMTP failed
@@ -120,9 +132,11 @@ async function initializeEmailTransporter() {
             console.log('Using Ethereal test email');
             console.log('View sent emails at: https://ethereal.email');
             console.log('Login:', testAccount.user);
+            emailStatus = { status: 'ethereal', error: null, verifiedAt: new Date().toISOString() };
         } catch (err) {
             // No network - use JSON transport (logs to console)
             console.log('No email service available - using console logging mode');
+            emailStatus = { status: 'console-only', error: 'No SMTP configured', verifiedAt: null };
             transporter = {
                 sendMail: async (options) => {
                     console.log('\n========== EMAIL PREVIEW ==========');
